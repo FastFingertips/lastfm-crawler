@@ -117,13 +117,23 @@ def getUserAvatar(_profileDom):
 	return profileAvatarUrl 
 
 def getUserFollowing(_followingDom):
-	topHeader = _followingDom.find("h1", {"class":"content-top-header"}).text # Path
-	userFollowing = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+	while True:
+		try:
+			topHeader = _followingDom.find("h1", {"class":"content-top-header"}).text # Path
+			userFollowing = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+			break
+		except:
+			continue
 	return userFollowing
 
 def getUserFollowers(_followersDom):
-	topHeader = _followersDom.find("h1", {"class":"content-top-header"}).text # Path
-	userFollowers = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+	while True:
+		try:
+			topHeader = _followersDom.find("h1", {"class":"content-top-header"}).text # Path
+			userFollowers = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+			break
+		except:
+			continue
 	return userFollowers
 
 def getProfileSince(_profileDom):
