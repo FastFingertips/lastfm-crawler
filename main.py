@@ -33,20 +33,23 @@ def getDom(responsesCode):
 def getProfileInfos(_domsDict):
 	profileDict = {}
 	if "profile_dom" in _domsDict:
-		profileDom 						= _domsDict["profile_dom"]
-		profileDict["username"] 		= getUsername(profileDom)
-		profileDict["user_avatar"] 		= getUserAvatar(profileDom)
-		profileDict["display_name"] 	= getDisplayName(profileDom)
-		profileDict["scrobbling_since"] = getProfileSince(profileDom)
-		profileDict["last_tracks"] 		= getLastScrobs(profileDom, 3)
-		profileDict["background_image"] = getBackgroundImage(profileDom)
-		profileDict["scrobbled_count"]	= int(getHeaderStatus(profileDom)[0].replace(",","")) # Profile Header: Scrobbles
-		profileDict["artists_count"]	= int(getHeaderStatus(profileDom)[1].replace(",","")) # Profile Header: Artist Count
-		profileDict["likes_count"]		= int(getHeaderStatus(profileDom)[2].replace(",","")) # Profile Header: Loved Tracks
+		profileDom 									= _domsDict["profile_dom"]
+		profileDict["username"] 					= getUsername(profileDom)
+		profileDict["user_avatar"] 					= getUserAvatar(profileDom)
+		profileDict["display_name"] 				= getDisplayName(profileDom)
+		profileDict["scrobbling_since"] 			= getProfileSince(profileDom)
+		profileDict["last_tracks"] 					= getLastScrobs(profileDom, 3)
+		profileDict["background_image"] 			= getBackgroundImage(profileDom)
+		profileDict["scrobbled_count"]				= int(getHeaderStatus(profileDom)[0].replace(",","")) # Profile Header: Scrobbles
+		profileDict["artists_count"]				= int(getHeaderStatus(profileDom)[1].replace(",","")) # Profile Header: Artist Count
+		profileDict["likes_count"]					= int(getHeaderStatus(profileDom)[2].replace(",","")) # Profile Header: Loved Tracks
 	if all(key in _domsDict for key in ('following_dom', 'followers_dom')): # Ayrı bir post isteği gerekir.
-		followsDom						= [_domsDict["following_dom"], _domsDict["followers_dom"]]
-		profileDict["user_following"] 	=  getUserFollowing(followsDom[0]) # Following
-		profileDict["user_followers"] 	=  getUserFollowers(followsDom[1]) # Followers
+		followsDom									= [_domsDict["following_dom"], _domsDict["followers_dom"]]
+		profileDict["follows"] = {}
+		profileDict["follows"]["following"] 		=  getUserFollowing(followsDom[0]) # Following
+		profileDict["follows"]["followers"] 		=  getUserFollowers(followsDom[1]) # Followers
+		profileDict["follows"]["following_counts"] 	=  getUserFollowingCount(followsDom[0]) # Following
+		profileDict["follows"]["followers_counts"] 	=  getUserFollowersCount(followsDom[1]) # Followers
 	return profileDict
 
 def printStatus(_profileDict, _react, _username):
@@ -59,9 +62,11 @@ def printStatus(_profileDict, _react, _username):
 	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
 	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
 
-	if "user_following" and "user_followers" in _profileDict:
-		print(f'Following: {_profileDict["user_following"]}, ', end="")
-		print(f'Followers: {_profileDict["user_followers"]}')
+	if "follows" in _profileDict:
+		print(f'Following Count: {_profileDict["follows"]["following_counts"]}, ', end="")
+		print(f'Followers Count: {_profileDict["follows"]["followers_counts"]}')
+		print(f'Following: {_profileDict["follows"]["following"]}')
+		print(f'Followers: {_profileDict["follows"]["followers"]}')
 
 	if  _profileDict['last_tracks'] != None:
 		print(f'Recent Tracks;', end="")
@@ -116,7 +121,7 @@ def getUserAvatar(_profileDom):
 		profileAvatarUrl = "No Avatar (Last.fm default avatar)"
 	return profileAvatarUrl 
 
-def getUserFollowing(_followingDom):
+def getUserFollowingCount(_followingDom):
 	while True:
 		try:
 			topHeader = _followingDom.find("h1", {"class":"content-top-header"}).text # Path
@@ -126,7 +131,7 @@ def getUserFollowing(_followingDom):
 			continue
 	return userFollowing
 
-def getUserFollowers(_followersDom):
+def getUserFollowersCount(_followersDom):
 	while True:
 		try:
 			topHeader = _followersDom.find("h1", {"class":"content-top-header"}).text # Path
@@ -135,6 +140,20 @@ def getUserFollowers(_followersDom):
 		except:
 			continue
 	return userFollowers
+
+def getUserFollowing(_followingDom):
+		fallowingDict = {}
+		fallowing = _followingDom.select("ul.user-list li.user-list-item")
+		for fw in fallowing:
+			print(fw.find("a", {"class":"user-list-link link-block-target"}))
+		return fallowing
+
+def getUserFollowers(_followersDom):
+		fallowersDict = {}
+		followers = _followersDom.select("ul.user-list li.user-list-item")
+		for fw in followers:
+			print(fw.find("a", {"class":"user-list-link link-block-target"}))
+		return followers
 
 def getProfileSince(_profileDom):
 	profileSince = _profileDom.find("span", {"class":"header-scrobble-since"})
