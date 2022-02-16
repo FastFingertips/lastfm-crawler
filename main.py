@@ -62,12 +62,6 @@ def printStatus(_profileDict, _react, _username):
 	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
 	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
 
-	if "follows" in _profileDict:
-		print(f'Following Count: {_profileDict["follows"]["following_counts"]}, ', end="")
-		print(f'Followers Count: {_profileDict["follows"]["followers_counts"]}')
-		print(f'Following: {_profileDict["follows"]["following"]}')
-		print(f'Followers: {_profileDict["follows"]["followers"]}')
-
 	if  _profileDict['last_tracks'] != None:
 		print(f'Recent Tracks;', end="")
 		recentTracks = _profileDict['last_tracks']
@@ -79,6 +73,12 @@ def printStatus(_profileDict, _react, _username):
 			print()
 	elif _profileDict["scrobbled_count"] > 0:
 		print("Recent Tracks: realtime tracks is private.")
+
+	if "follows" in _profileDict:
+		print(f'Following Count: {_profileDict["follows"]["following_counts"]}, ', end="")
+		print(f'Followers Count: {_profileDict["follows"]["followers_counts"]}')
+		print(f'Following: {_profileDict["follows"]["following"]}')
+		print(f'Followers: {_profileDict["follows"]["followers"]}')
 	
 	if _react:
 		time.sleep(5)
@@ -142,18 +142,22 @@ def getUserFollowersCount(_followersDom):
 	return userFollowers
 
 def getUserFollowing(_followingDom):
-		fallowingDict = {}
-		fallowing = _followingDom.select("ul.user-list li.user-list-item")
-		for fw in fallowing:
-			print(fw.find("a", {"class":"user-list-link link-block-target"}))
-		return fallowing
+		followingDict = {}
+		following = _followingDom.find_all(attrs={"class": "user-list-item"})
+		for f in following:
+			print(f.find("a").text.strip())
+			# followingDict[f.text] = f.find("href")
+			# print(followingDict[f.text])
+		return followingDict
 
 def getUserFollowers(_followersDom):
-		fallowersDict = {}
-		followers = _followersDom.select("ul.user-list li.user-list-item")
-		for fw in followers:
-			print(fw.find("a", {"class":"user-list-link link-block-target"}))
-		return followers
+		followersDict = {}
+		followers = _followersDom.find_all(attrs={"class": "user-list-item"})
+		for f in followers:
+			print(f.find("a").text.strip())
+			# followersDict[f.text] = f.find("href")
+			# print(followersDict[f.text])
+		return followersDict
 
 def getProfileSince(_profileDom):
 	profileSince = _profileDom.find("span", {"class":"header-scrobble-since"})
