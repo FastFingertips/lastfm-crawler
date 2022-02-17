@@ -142,22 +142,31 @@ def getUserFollowersCount(_followersDom):
 	return userFollowers
 
 def getUserFollowing(_followingDom):
-		followingDict = {}
-		following = _followingDom.find_all(attrs={"class": "user-list-item"})
-		for f in following:
-			print(f.find("a").text.strip())
-			# followingDict[f.text] = f.find("href")
-			# print(followingDict[f.text])
-		return followingDict
+	followingDict = {}
+	currentFallowingPageDom = _followingDom
+	while True:
+		following = currentFallowingPageDom.find_all(attrs={"class": "user-list-name"})
+		for f in following: # Bir sayfada max 30
+			f_username = f.text.strip()
+			followingDict[f_username] = f'https://www.last.fm/user/{f_username}'
+		if currentFallowingPageDom.find("li", {"class": "pagination-next"}):
+			print(currentFallowingPageDom.find("li", {"class": "pagination-next"}))
+		else:
+			return followingDict
+	
 
 def getUserFollowers(_followersDom):
-		followersDict = {}
-		followers = _followersDom.find_all(attrs={"class": "user-list-item"})
-		for f in followers:
-			print(f.find("a").text.strip())
-			# followersDict[f.text] = f.find("href")
-			# print(followersDict[f.text])
-		return followersDict
+	followersDict = {}
+	currentFallowersPageDom = _followersDom
+	while True:
+		followers = currentFallowersPageDom.find_all(attrs={"class": "user-list-name"})
+		for f in followers: # Bir sayfada max 30
+			f_username = f.text.strip()
+			followersDict[f_username] = f'https://www.last.fm/user/{f_username}'
+		if currentFallowersPageDom.find("li", {"class": "pagination-next"}):
+			print(currentFallowersPageDom.find("li", {"class": "pagination-next"}))
+		else:
+			return followersDict
 
 def getProfileSince(_profileDom):
 	profileSince = _profileDom.find("span", {"class":"header-scrobble-since"})
