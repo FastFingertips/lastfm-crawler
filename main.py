@@ -150,7 +150,7 @@ def getUserFollowing(_followingDom):
 			f_username = f.text.strip()
 			followingDict[f_username] = f'https://www.last.fm/user/{f_username}'
 		if currentFallowingPageDom.find("li", {"class": "pagination-next"}):
-			pageNo = currentFallowingPageDom.find("li", {"class": "pagination-next"}))
+			pageNo = currentFallowingPageDom.find("li", {"class": "pagination-next"})
 		else:
 			return followingDict
 	
@@ -164,7 +164,7 @@ def getUserFollowers(_followersDom):
 			f_username = f.text.strip()
 			followersDict[f_username] = f'https://www.last.fm/user/{f_username}'
 		if currentFallowersPageDom.find("li", {"class": "pagination-next"}):
-			pageNo = currentFallowersPageDom.find("li", {"class": "pagination-next"}))
+			pageNo = currentFallowersPageDom.find("li", {"class": "pagination-next"})
 		else:
 			return followersDict
 
