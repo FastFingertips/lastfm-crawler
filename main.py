@@ -4,25 +4,26 @@ import time
 
 def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
 	if _username:
-		domsDict = {}
-		responsesDict = {}
-		profileUrl = "https://www.last.fm/user/" + _username
-		profileResponseCode = getResponse(profileUrl)
+		urlDict, domsDict, responsesDict = {},{},{}
+		urlDict['user_url'] = "https://www.last.fm/user/" + _username
+		profileResponseCode = getResponse(urlDict['user_url'])
 		if profileResponseCode.status_code in range(200,299):
 			responsesDict["profile_dom"] = profileResponseCode
 
-	if _fw:
-		responsesDict["following_dom"] = getResponse(profileUrl+'/following')
-		responsesDict["followers_dom"] = getResponse(profileUrl+'/followers')
+		if _fw:
+			urlDict['fallowing_url'] = urlDict['user_url']+'/following'
+			urlDict['fallowers_url'] = urlDict['user_url']+'/followers'
+			responsesDict["following_dom"] = getResponse(urlDict['fallowing_url'])
+			responsesDict["followers_dom"] = getResponse(urlDict['fallowers_url'])
 
-	for responseKey, responseValue in responsesDict.items():
-		domsDict[responseKey] = getDom(responseValue)
+		for responseKey, responseValue in responsesDict.items():
+			domsDict[responseKey] = getDom(responseValue)
 
-	userProfileInfos = getProfileInfos(domsDict)
+		userProfileInfos = getProfileInfos(domsDict)
 
-	if _statusPrint:
-		printStatus(userProfileInfos, _react, _username)
-	return userProfileInfos
+		if _statusPrint:
+			printStatus(userProfileInfos, _react, _username)
+		return userProfileInfos
 
 def getResponse(_url):
 	return requests.get(_url)
@@ -151,7 +152,10 @@ def getUserFollowing(_followingDom):
 			followingDict[f_username] = f'https://www.last.fm/user/{f_username}'
 		if currentFallowingPageDom.find("li", {"class": "pagination-next"}):
 			pageNo = currentFallowingPageDom.find("li", {"class": "pagination-next"})
+			currentFallowingPageUrl = f"https://www.last.fm/user/{f_username}/following{pageNo.a['href']}"
+			currentFallowingPageDom = getDom(getResponse(currentFallowingPageUrl))
 		else:
+			print(len(followingDict))
 			return followingDict
 	
 
@@ -165,7 +169,10 @@ def getUserFollowers(_followersDom):
 			followersDict[f_username] = f'https://www.last.fm/user/{f_username}'
 		if currentFallowersPageDom.find("li", {"class": "pagination-next"}):
 			pageNo = currentFallowersPageDom.find("li", {"class": "pagination-next"})
+			currentFallowersPageUrl = f"https://www.last.fm/user/{f_username}/followers{pageNo.a['href']}"
+			currentFallowersPageDom = getDom(getResponse(currentFallowersPageUrl))
 		else:
+			print(len(followersDict))
 			return followersDict
 
 def getProfileSince(_profileDom):
