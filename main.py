@@ -51,6 +51,8 @@ def getProfileInfos(_domsDict):
 		profileDict["follows"]["followers"] 		=  getUserFollowers(followsDom[1]) # Followers
 		profileDict["follows"]["following_counts"] 	=  getUserFollowingCount(followsDom[0]) # Following
 		profileDict["follows"]["followers_counts"] 	=  getUserFollowersCount(followsDom[1]) # Followers
+		profileDict["follows"]["following_gt"] 		= 	getUserGT(profileDict["follows"]["following"],profileDict["follows"]["followers"])
+		
 	return profileDict
 
 def printStatus(_profileDict, _react, _username):
@@ -76,13 +78,27 @@ def printStatus(_profileDict, _react, _username):
 		print("Recent Tracks: realtime tracks is private.")
 
 	if "follows" in _profileDict:
-		print(f'Following ({_profileDict["follows"]["following_counts"]});')
-		for no,user in _profileDict["follows"]["following"].items():
-			print(f'[{no}]: {user}')
-		print(f'Followers ({_profileDict["follows"]["followers_counts"]});')
-		for no,user in _profileDict["follows"]["followers"].items():
-			print(f'[{no}]: {user}')
-	
+		pd_followingCounts 	= _profileDict["follows"]["following_counts"]
+		pd_following 		= _profileDict["follows"]["following"]
+		pd_followersCounts 	= _profileDict["follows"]["followers_counts"]
+		pd_followers 		= _profileDict["follows"]["followers"]
+		pd_followingFB 		= _profileDict["follows"]["following_gt"]
+
+		print(f'Following ({pd_followingCounts});')
+		for user,b in pd_following.items():
+			print(f'[{b}]: {user}')
+
+		print(f'Followers ({pd_followersCounts});')
+		for user,b in pd_followers.items():
+			print(f'[{b}]: {user}')
+
+		print(f'Follow backs ({getDictValueCount(pd_followingFB,True)});')
+		for user,b in pd_followingFB.items():
+			if b == False:
+				print(f'[{b}]: {user} (https://last.fm/user/{user})')
+			else:
+				print(f'[{b}]: {user}')
+
 	if _react:
 		time.sleep(5)
 		checkChange(_profileDict, _username)
@@ -148,13 +164,11 @@ def getUserFollowing(_followingDom):
 	followingDict = {}
 	currentFollowingPageDom = _followingDom
 	username = getUsername(currentFollowingPageDom)
-	x = 1
 	while True:
 		following = currentFollowingPageDom.find_all(attrs={"class": "user-list-name"})
 		for f in following: # Bir sayfada max 30
 			f_username = f.text.strip()
-			followingDict[x] = f_username
-			x = x + 1
+			followingDict[f_username] = True
 		if currentFollowingPageDom.find("li", {"class": "pagination-next"}):
 			pageNo = currentFollowingPageDom.find("li", {"class": "pagination-next"})
 			currentFollowingPageUrl = f"https://www.last.fm/user/{username}/following{pageNo.a['href']}"
@@ -167,19 +181,26 @@ def getUserFollowers(_followersDom):
 	followersDict = {}
 	currentFollowersPageDom = _followersDom
 	username = getUsername(currentFollowersPageDom)
-	x = 1
 	while True:
 		followers = currentFollowersPageDom.find_all(attrs={"class": "user-list-name"})
 		for f in followers: # Bir sayfada max 30
 			f_username = f.text.strip()
-			followersDict[x] = f_username
-			x = x + 1
+			followersDict[f_username] =  True
 		if currentFollowersPageDom.find("li", {"class": "pagination-next"}):
 			pageNo = currentFollowersPageDom.find("li", {"class": "pagination-next"})
 			currentFollowersPageUrl = f"https://www.last.fm/user/{username}/followers{pageNo.a['href']}"
 			currentFollowersPageDom = getDom(getResponse(currentFollowersPageUrl))
 		else:
 			return followersDict
+
+def getUserGT(following,followers):
+	user_gt = {}
+	for user in following:
+		if user in followers:
+			user_gt[user] = True
+		else:
+			user_gt[user] = False
+	return user_gt
 
 def getProfileSince(_profileDom):
 	profileSince = _profileDom.find("span", {"class":"header-scrobble-since"})
@@ -198,6 +219,12 @@ def getLastScrobs(_profileDom, _x):
 			lastTracks =  None
 			break
 	return lastTracks
+
+def getDictValueCount(dicti, key):
+	keyCount = sum(key for _ in dicti.values() if _)
+	keyCount = sum(dicti.values())
+	#print(f'{dicti} içerisinde {keyCount} adet {key}')
+	return keyCount
 
 searchUser(input('Username: @'))
 
