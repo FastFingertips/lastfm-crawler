@@ -51,7 +51,7 @@ def getProfileInfos(_domsDict):
 		profileDict["follows"]["followers"] 		=  getUserFollowers(followsDom[1]) # Followers
 		profileDict["follows"]["following_counts"] 	=  getUserFollowingCount(followsDom[0]) # Following
 		profileDict["follows"]["followers_counts"] 	=  getUserFollowersCount(followsDom[1]) # Followers
-		profileDict["follows"]["following_gt"] 		= 	getUserGT(profileDict["follows"]["following"],profileDict["follows"]["followers"])
+		profileDict["follows"]["following_gt"] 		=  getUserGT(profileDict["follows"]["following"],profileDict["follows"]["followers"])
 		
 	return profileDict
 
@@ -84,20 +84,31 @@ def printStatus(_profileDict, _react, _username):
 		pd_followers 		= _profileDict["follows"]["followers"]
 		pd_followingFB 		= _profileDict["follows"]["following_gt"]
 
+		f = followDict(pd_following, pd_followers, pd_followingFB)
+
+		for user in f:
+			print(f"{'*'*15}")
+			print(f"@{user} (Link: {f[user]['link']});")
+			print(f"Following: {f[user]['following']}\nFollower: {f[user]['follower']}\nUser FB: {f[user]['user_fb']}")
+	
+		"""
 		print(f'Following ({pd_followingCounts});')
 		for user,b in pd_following.items():
 			print(f'[{b}]: {user}')
-
+		"""
+		"""
 		print(f'Followers ({pd_followersCounts});')
 		for user,b in pd_followers.items():
 			print(f'[{b}]: {user}')
-
+		"""
+		""" 
 		print(f'Follow backs ({getDictValueCount(pd_followingFB,True)});')
 		for user,b in pd_followingFB.items():
 			if b == False:
 				print(f'[{b}]: {user} (https://last.fm/user/{user})')
 			else:
 				print(f'[{b}]: {user}')
+		"""
 
 	if _react:
 		time.sleep(5)
@@ -225,6 +236,34 @@ def getDictValueCount(dicti, key):
 	keyCount = sum(dicti.values())
 	#print(f'{dicti} içerisinde {keyCount} adet {key}')
 	return keyCount
+
+def followDict(following,followers,fb):
+	pd_following = following
+	pd_followers = followers
+	pd_followingFB = fb
+	f = {}
+	for username in pd_following:
+		f[username] = {}
+		f[username]['following'] = True
+		if username in pd_followers:
+			f[username]['follower'] = True # 2. true takip ettiği / false etmediği
+			f[username]['user_fb'] = pd_followingFB[username]
+		else:
+			f[username]['follower'] = False
+			f[username]['user_fb'] = pd_followingFB[username]
+		f[username]['link'] = f'https://last.fm/user/{username}'
+	for username in pd_followers:
+		f[username] = {}
+		f[username]['follower'] = True
+		if username in pd_following:
+			f[username]['following'] = True # 2. true takip ettiği / false etmediği
+			f[username]['user_fb'] = pd_followingFB[username]
+		else:
+			f[username]['following'] = False
+			f[username]['user_fb'] = False
+		f[username]['link'] = f'https://last.fm/user/{username}'
+		
+	return f
 
 searchUser(input('Username: @'))
 
