@@ -71,19 +71,19 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 		pd_followingFB = _profileDict["follows"]["following_gt"]
 		pd_fbCounts = _profileDict["follows"]["fb_count"]
 		pd_nofbCounts = _profileDict["follows"]["no_fb_count"]
+		print(f'\nFollows;')
 		# Prints
 		if False:
 			printus("Following", pd_following, pd_followingCounts) # Following
 			printus("Followers", pd_followers, pd_followersCounts) # Followers
 			printus("Followback", pd_followingFB, pd_fbCounts)
-		
-		print(f"\nFollowing: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
+		print(f"Following: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
 		if pd_followingCounts != pd_fbCounts:
 			print(f"Users who don't follow you back ({pd_nofbCounts});")
 			f = followDict(pd_following, pd_followers, pd_followingFB)
 			for user in f:
 				if f[user]['following'] == True and f[user]['follower'] == False:
-					print(f"@{user} ({f[user]['link']}) - FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}]")
+					print(f"FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}] | {f[user]['link']}, @{user}")
 		else:
 			print(f'{pd_fbCounts} users you follow are following you.')
 	
