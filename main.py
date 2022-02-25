@@ -41,9 +41,9 @@ def getProfileInfos(_domsDict):
 		profileDict["scrobbling_since"] = getProfileSince(profileDom)
 		profileDict["last_tracks"] = getLastScrobs(profileDom, 3)
 		profileDict["background_image"] = getBackgroundImage(profileDom)
-		profileDict["scrobbled_count"] = int(getHeaderStatus(profileDom)[0].replace(",","")) # Profile Header: Scrobbles
-		profileDict["artists_count"] = int(getHeaderStatus(profileDom)[1].replace(",","")) # Profile Header: Artist Count
-		profileDict["likes_count"] = int(getHeaderStatus(profileDom)[2].replace(",","")) # Profile Header: Loved Tracks
+		profileDict["scrobbled_count"] = int(getHeaderStatus(profileDom)[0]) # Profile Header: Scrobbles
+		profileDict["artists_count"] = int(getHeaderStatus(profileDom)[1]) # Profile Header: Artist Count
+		profileDict["likes_count"] = int(getHeaderStatus(profileDom)[2]) # Profile Header: Loved Tracks
 	if all(key in _domsDict for key in ('following_dom', 'followers_dom')): # Ayrı bir post isteği gerekir.
 		followsDom = [_domsDict["following_dom"], _domsDict["followers_dom"]]
 		profileDict["follows"] = {}
@@ -58,29 +58,8 @@ def getProfileInfos(_domsDict):
 	return profileDict
 
 def printStatus(_profileDict, _react, _username): # _profileDict, _react, _username
-	print(f'\n{time.strftime("%H:%M:%S")}')
-	print(f'Profile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
-	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
-	# Adresses
-	print(f'Avatar: {_profileDict["user_avatar"]}')
-	print(f'Background: {_profileDict["background_image"]}')
-	# Headers
-	print(f'Scrobbles: {_profileDict["scrobbled_count"]} | ', end="")
-	print(f'Artists: {_profileDict["artists_count"]} | ', end ="")
-	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
-
-	if _profileDict['last_tracks'] != None:
-		print(f'Recent Tracks;', end="")
-		recentTracks = _profileDict['last_tracks']
-		for trackNo in recentTracks:
-			print(f'\n[{trackNo+1}]:', end=" ")
-			for trackValueNo in range(len(recentTracks[trackNo])):
-				print(recentTracks[trackNo][trackValueNo], end= " | ")
-		else:
-			print()
-	elif _profileDict["scrobbled_count"] > 0:
-		print("Recent Tracks: realtime tracks is private.")
-
+	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
+	# Follow Prints
 	if "follows" in _profileDict:
 		# Following
 		pd_followingCounts = _profileDict["follows"]["following_counts"]
@@ -99,16 +78,40 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 			printus("Followback", pd_followingFB, pd_fbCounts)
 		
 		print(f"\nFollowing: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
-		print(f"Users who don't follow you back ({pd_nofbCounts});")
-		f = followDict(pd_following, pd_followers, pd_followingFB)
-		for user in f:
-			if f[user]['following'] == True and f[user]['follower'] == False:
-				print(f"@{user}")
-				print(f"Link: {f[user]['link']}")
-				print(f"Following: {f[user]['following']}\nFollower: {f[user]['follower']}\nUser FB: {f[user]['user_fb']}")
-		
+		if pd_followingCounts != pd_fbCounts:
+			print(f"Users who don't follow you back ({pd_nofbCounts});")
+			f = followDict(pd_following, pd_followers, pd_followingFB)
+			for user in f:
+				if f[user]['following'] == True and f[user]['follower'] == False:
+					print(f"@{user} ({f[user]['link']}) - FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}]")
+		else:
+			print(f'{pd_fbCounts} users you follow are following you.')
+	
+	# Last Tracks Prints
+	if _profileDict['last_tracks'] != None:
+		print(f'\nRecent Tracks;', end='')
+		recentTracks = _profileDict['last_tracks']
+		for trackNo in recentTracks:
+			print(f'\n[{trackNo+1}]:', end=" ")
+			for trackValueNo in range(len(recentTracks[trackNo])):
+				print(recentTracks[trackNo][trackValueNo], end= " | ")
+		else:
+			print()
+	elif _profileDict["scrobbled_count"] > 0:
+		print("\nRecent Tracks: realtime tracks is private.")
+
+	# Adresses
+	print(f'\nProfile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
+	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
+	print(f'Avatar: {_profileDict["user_avatar"]}')
+	print(f'Background: {_profileDict["background_image"]}')
+	# Headers
+	print(f'Scrobbles: {_profileDict["scrobbled_count"]} | ', end="")
+	print(f'Artists: {_profileDict["artists_count"]} | ', end ="")
+	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
+
 	if _react:
-		time.sleep(5)
+		time.sleep(5) # 5 sec
 		checkChange(_profileDict, _username)
 
 def printus(dict_name, user_dict, pd_counts): # dict, counts
@@ -128,6 +131,10 @@ def getHeaderStatus(_profileDom):
 	headers = _profileDom.find_all("div", {"class": "header-metadata-display"})
 	for i in range(len(headers)):
 		headerStatus[i] = headers[i].text.strip()
+		try:
+			headerStatus[i] = headerStatus[i].replace(",","")
+		except:
+			pass
 	return headerStatus
 
 def getBackgroundImage(_profileDom):
