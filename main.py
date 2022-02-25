@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
-def searchUser(_username, _statusPrint=True, _react=True, _fw=False):
+def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
 	if _username:
 		urlDict, domsDict, responsesDict = {},{},{}
 		urlDict['user_url'] = "https://www.last.fm/user/" + _username
@@ -69,7 +69,6 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 	print(f'Artists: {_profileDict["artists_count"]} | ', end ="")
 	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
 
-
 	if _profileDict['last_tracks'] != None:
 		print(f'Recent Tracks;', end="")
 		recentTracks = _profileDict['last_tracks']
@@ -83,28 +82,22 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 		print("Recent Tracks: realtime tracks is private.")
 
 	if "follows" in _profileDict:
+		# Following
 		pd_followingCounts = _profileDict["follows"]["following_counts"]
 		pd_following = _profileDict["follows"]["following"]
+		# Followers
 		pd_followersCounts = _profileDict["follows"]["followers_counts"]
 		pd_followers = _profileDict["follows"]["followers"]
+		# Followback
 		pd_followingFB = _profileDict["follows"]["following_gt"]
 		pd_fbCounts = _profileDict["follows"]["fb_count"]
 		pd_nofbCounts = _profileDict["follows"]["no_fb_count"]
+		# Prints
 		if False:
-			# Following
-			print(f'Following ({pd_followingCounts});')
-			for user,b in pd_following.items():
-				print(f'[{b}]: {user}')
-			# Followers
-			print(f'Followers ({pd_followersCounts});')
-			for user,b in pd_followers.items():
-				print(f'[{b}]: {user}')
-				for user,b in pd_followingFB.items():
-					if b == False:
-						print(f'[{b}]: {user} (https://last.fm/user/{user})')
-					else:
-						print(f'[{b}]: {user}')
-
+			printus("Following", pd_following, pd_followingCounts) # Following
+			printus("Followers", pd_followers, pd_followersCounts) # Followers
+			printus("Followback", pd_followingFB, pd_fbCounts)
+		
 		print(f"\nFollowing: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
 		print(f"Users who don't follow you back ({pd_nofbCounts});")
 		f = followDict(pd_following, pd_followers, pd_followingFB)
@@ -117,6 +110,11 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 	if _react:
 		time.sleep(5)
 		checkChange(_profileDict, _username)
+
+def printus(dict_name, user_dict, pd_counts): # dict, counts
+	print(f'{dict_name}: ({pd_counts});')
+	for user,b in user_dict.items(): # user, bool
+		print(f'[{b}]: {user}')
 
 def checkChange(currentProfileData, _username):
 	while True:	
