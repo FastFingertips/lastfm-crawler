@@ -49,12 +49,15 @@ def getProfileInfos(_domsDict):
 		profileDict["follows"] = {}
 		profileDict["follows"]["following"] = getUserFollowing(followsDom[0]) # Following
 		profileDict["follows"]["followers"] = getUserFollowers(followsDom[1]) # Followers
-		profileDict["follows"]["following_counts"] = getUserFollowingCount(followsDom[0]) # Following
-		profileDict["follows"]["followers_counts"] = getUserFollowersCount(followsDom[1]) # Followers
 		profileDict["follows"]["following_gt"] = getUserGT(profileDict["follows"]["following"], profileDict["follows"]["followers"])
+		# Get Counts
+		profileDict["follows"]["following_counts"] = int(getUserFollowingCount(followsDom[0])) # Following
+		profileDict["follows"]["followers_counts"] = int(getUserFollowersCount(followsDom[1])) # Followers
+		profileDict["follows"]["fb_count"] = int(getDictValueCount(profileDict["follows"]["following_gt"], True))
+		profileDict["follows"]["no_fb_count"] = int(profileDict["follows"]["following_counts"] - profileDict["follows"]["fb_count"])
 	return profileDict
 
-def printStatus(_profileDict, _react, _username):
+def printStatus(_profileDict, _react, _username): # _profileDict, _react, _username
 	print(f'\n{time.strftime("%H:%M:%S")}')
 	print(f'Profile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
 	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
@@ -85,9 +88,18 @@ def printStatus(_profileDict, _react, _username):
 		pd_followersCounts = _profileDict["follows"]["followers_counts"]
 		pd_followers = _profileDict["follows"]["followers"]
 		pd_followingFB = _profileDict["follows"]["following_gt"]
+		pd_fbCounts = _profileDict["follows"]["fb_count"]
+		pd_nofbCounts = _profileDict["follows"]["no_fb_count"]
+		if False:
+			for user,b in pd_followingFB.items():
+				if b == False:
+					print(f'[{b}]: {user} (https://last.fm/user/{user})')
+				else:
+					print(f'[{b}]: {user}')
 
-		
-		print("\nUsers who don't follow you back;")
+
+		print(f"Following: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
+		print(f"\nUsers who don't follow you back ({pd_nofbCounts});")
 		f = followDict(pd_following, pd_followers, pd_followingFB)
 		for user in f:
 			if f[user]['following'] == True and f[user]['follower'] == False:
@@ -105,15 +117,6 @@ def printStatus(_profileDict, _react, _username):
 		for user,b in pd_followers.items():
 			print(f'[{b}]: {user}')
 		"""
-		""" 
-		print(f'Follow backs ({getDictValueCount(pd_followingFB,True)});')
-		for user,b in pd_followingFB.items():
-			if b == False:
-				print(f'[{b}]: {user} (https://last.fm/user/{user})')
-			else:
-				print(f'[{b}]: {user}')
-		"""
-
 	if _react:
 		time.sleep(5)
 		checkChange(_profileDict, _username)
@@ -235,10 +238,7 @@ def getLastScrobs(_profileDom, _x):
 	return lastTracks
 
 def getDictValueCount(dicti, key):
-	keyCount = sum(key for _ in dicti.values() if _)
-	keyCount = sum(dicti.values())
-	#print(f'{dicti} içerisinde {keyCount} adet {key}')
-	return keyCount
+	return sum(key for _ in dicti.values() if _)
 
 def followDict(_following, _followers, _fb):
 	f = {}
