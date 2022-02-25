@@ -128,9 +128,16 @@ def checkChange(currentProfileData, _username):
 
 				# Notifier
 				if currentProfileData["last_tracks"] != None:
-					msgLastTrack = f'\nLast track: {currentProfileData["last_tracks"][0][0]} | {currentProfileData["last_tracks"][0][1]}'
+					song_name = currentProfileData["last_tracks"][0][0]
+					artist_name = currentProfileData["last_tracks"][0][1]
+					artistCountUrl = f'https://www.last.fm/user/XAADE/library/music/{artist_name}?date_preset=ALL'
+					artistCountDom = getDom(getResponse(artistCountUrl))
+					artistCount = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
+					msgLastTrack = f'\nLast track: {song_name} | {artist_name} ({artistCount})'
+
 				else:
 					msgLastTrack = ''
+
 				notifier = ToastNotifier()
 				notifier.show_toast(
 					f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
