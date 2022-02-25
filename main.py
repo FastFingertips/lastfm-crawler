@@ -186,6 +186,10 @@ def getUserFollowingCount(_followingDom):
 		try:
 			topHeader = _followingDom.find("h1", {"class":"content-top-header"}).text # Path
 			userFollowing = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+			try:
+				userFollowing = int(userFollowing) # Sayı değilse
+			except:
+				userFollowing = 0
 			break
 		except:
 			continue
@@ -196,6 +200,10 @@ def getUserFollowersCount(_followersDom):
 		try:
 			topHeader = _followersDom.find("h1", {"class":"content-top-header"}).text # Path
 			userFollowers = topHeader[topHeader.find("(")+1:topHeader.find(")")] # Parantez arası değeri
+			try:
+				userFollowers = int(userFollowers) # Sayı değilse
+			except:
+				userFollowers = 0
 			break
 		except:
 			continue
