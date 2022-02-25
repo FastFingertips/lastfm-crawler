@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from win10toast import ToastNotifier
 import requests
 import time
 
@@ -123,6 +124,17 @@ def checkChange(currentProfileData, _username):
 	while True:	
 		newProfileData = searchUser(_username, False) 	
 		if currentProfileData != newProfileData:
+			if newProfileData["scrobbled_count"] != currentProfileData["scrobbled_count"]:
+				if currentProfileData["last_tracks"] != None:
+					msgLastTrack = f'\nLast track: {currentProfileData["last_tracks"][0][0]} | {currentProfileData["last_tracks"][0][1]}'
+				else:
+					msgLastTrack = ''
+				notifier = ToastNotifier()
+				notifier.show_toast(
+					f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
+					f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}',
+					icon_path='lastfm.ico')
+
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True, _username)
 
