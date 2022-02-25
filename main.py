@@ -125,6 +125,8 @@ def checkChange(currentProfileData, _username):
 		newProfileData = searchUser(_username, False) 	
 		if currentProfileData != newProfileData:
 			if newProfileData["scrobbled_count"] != currentProfileData["scrobbled_count"]:
+
+				# Notifier
 				if currentProfileData["last_tracks"] != None:
 					msgLastTrack = f'\nLast track: {currentProfileData["last_tracks"][0][0]} | {currentProfileData["last_tracks"][0][1]}'
 				else:
