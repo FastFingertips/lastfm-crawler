@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
-def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
+def searchUser(_username, _statusPrint=True, _react=True, _fw=False):
 	if _username:
 		urlDict, domsDict, responsesDict = {},{},{}
 		urlDict['user_url'] = "https://www.last.fm/user/" + _username
@@ -91,32 +91,29 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 		pd_fbCounts = _profileDict["follows"]["fb_count"]
 		pd_nofbCounts = _profileDict["follows"]["no_fb_count"]
 		if False:
-			for user,b in pd_followingFB.items():
-				if b == False:
-					print(f'[{b}]: {user} (https://last.fm/user/{user})')
-				else:
-					print(f'[{b}]: {user}')
+			# Following
+			print(f'Following ({pd_followingCounts});')
+			for user,b in pd_following.items():
+				print(f'[{b}]: {user}')
+			# Followers
+			print(f'Followers ({pd_followersCounts});')
+			for user,b in pd_followers.items():
+				print(f'[{b}]: {user}')
+				for user,b in pd_followingFB.items():
+					if b == False:
+						print(f'[{b}]: {user} (https://last.fm/user/{user})')
+					else:
+						print(f'[{b}]: {user}')
 
-
-		print(f"Following: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
-		print(f"\nUsers who don't follow you back ({pd_nofbCounts});")
+		print(f"\nFollowing: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
+		print(f"Users who don't follow you back ({pd_nofbCounts});")
 		f = followDict(pd_following, pd_followers, pd_followingFB)
 		for user in f:
 			if f[user]['following'] == True and f[user]['follower'] == False:
 				print(f"@{user}")
 				print(f"Link: {f[user]['link']}")
 				print(f"Following: {f[user]['following']}\nFollower: {f[user]['follower']}\nUser FB: {f[user]['user_fb']}")
-	
-		"""
-		print(f'Following ({pd_followingCounts});')
-		for user,b in pd_following.items():
-			print(f'[{b}]: {user}')
-		"""
-		"""
-		print(f'Followers ({pd_followersCounts});')
-		for user,b in pd_followers.items():
-			print(f'[{b}]: {user}')
-		"""
+		
 	if _react:
 		time.sleep(5)
 		checkChange(_profileDict, _username)
