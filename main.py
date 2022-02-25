@@ -51,18 +51,21 @@ def getProfileInfos(_domsDict):
 		profileDict["follows"]["followers"] = getUserFollowers(followsDom[1]) # Followers
 		profileDict["follows"]["following_counts"] = getUserFollowingCount(followsDom[0]) # Following
 		profileDict["follows"]["followers_counts"] = getUserFollowersCount(followsDom[1]) # Followers
-		profileDict["follows"]["following_gt"] = getUserGT(profileDict["follows"]["following"],profileDict["follows"]["followers"])
+		profileDict["follows"]["following_gt"] = getUserGT(profileDict["follows"]["following"], profileDict["follows"]["followers"])
 	return profileDict
 
 def printStatus(_profileDict, _react, _username):
 	print(f'\n{time.strftime("%H:%M:%S")}')
 	print(f'Profile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
+	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
+	# Adresses
 	print(f'Avatar: {_profileDict["user_avatar"]}')
 	print(f'Background: {_profileDict["background_image"]}')
+	# Headers
 	print(f'Scrobbles: {_profileDict["scrobbled_count"]} | ', end="")
 	print(f'Artists: {_profileDict["artists_count"]} | ', end ="")
 	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
-	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
+
 
 	if _profileDict['last_tracks'] != None:
 		print(f'Recent Tracks;', end="")
@@ -83,13 +86,14 @@ def printStatus(_profileDict, _react, _username):
 		pd_followers = _profileDict["follows"]["followers"]
 		pd_followingFB = _profileDict["follows"]["following_gt"]
 
+		
+		print("\nUsers who don't follow you back;")
 		f = followDict(pd_following, pd_followers, pd_followingFB)
-
 		for user in f:
-			print(f"\n@{user}")
-			if f[user]['user_fb'] == False: 
+			if f[user]['following'] == True and f[user]['follower'] == False:
+				print(f"@{user}")
 				print(f"Link: {f[user]['link']}")
-			print(f"Following: {f[user]['following']}\nFollower: {f[user]['follower']}\nUser FB: {f[user]['user_fb']}")
+				print(f"Following: {f[user]['following']}\nFollower: {f[user]['follower']}\nUser FB: {f[user]['user_fb']}")
 	
 		"""
 		print(f'Following ({pd_followingCounts});')
