@@ -190,10 +190,9 @@ def getUserFollowingCount(_followingDom):
 				userFollowing = int(userFollowing) # Sayı değilse
 			except:
 				userFollowing = 0
-			break
+			return userFollowing
 		except:
-			continue
-	return userFollowing
+			continue	
 
 def getUserFollowersCount(_followersDom):
 	while True:
@@ -204,10 +203,9 @@ def getUserFollowersCount(_followersDom):
 				userFollowers = int(userFollowers) # Sayı değilse
 			except:
 				userFollowers = 0
-			break
+			return userFollowers
 		except:
 			continue
-	return userFollowers
 
 def getUserFollowing(_followingDom):
 	followingDict = {}
