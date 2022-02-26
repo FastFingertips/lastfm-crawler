@@ -93,21 +93,9 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 		else:
 			print(f'{pd_fbCounts} users you follow are following you.')
 	
-	# Last Tracks Prints
-	if _profileDict['last_tracks'] != None:
-		print(f'\nRecent Tracks;', end='')
-		recentTracks = _profileDict['last_tracks']
-		for trackNo in recentTracks:
-			print(f'\n[{trackNo+1}]:', end=" ")
-			for trackValueNo in range(len(recentTracks[trackNo])):
-				print(recentTracks[trackNo][trackValueNo], end= " | ")
-		else:
-			print()
-	elif _profileDict["scrobbled_count"] > 0:
-		print("\nRecent Tracks: realtime tracks is private.")
-
 	# Printdefs
-	printTodayAllTime(_profileDict['artist_count_alltime'], _profileDict['today_listening'])
+	printRecentTracks(_profileDict) # Last Tracks Prints
+	printTodayAllTime(_profileDict['artist_count_alltime'], _profileDict['today_listening']) # Total, Today Prints
 
 	# Adresses
 	print(f'\nProfile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
@@ -364,11 +352,22 @@ def printTodayListening(_todayTracks):
 	else: # Dict boş ise false döndürür.
 		print('Bugün dinlenmedi.')
 
-def printRecentTracks():
- 	pass # Soon
+def printRecentTracks(pDict):
+	if pDict['last_tracks'] != None:
+		print(f'\nRecent Tracks;', end='')
+		recentTracks = pDict['last_tracks']
+		for trackNo in recentTracks:
+			print(f'\n[{trackNo+1}]:', end=" ")
+			for trackValueNo in range(len(recentTracks[trackNo])):
+				print(recentTracks[trackNo][trackValueNo], end= " | ")
+		else:
+			print()
+	elif pDict["scrobbled_count"] > 0:
+		print("\nRecent Tracks: realtime tracks is private.")
 
 def printDictValue(_dict):
 	for key, value in _dict.items():
 		print(f'{key} ({value})')
+
 searchUser(input('Username: @'))
 
