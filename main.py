@@ -46,7 +46,9 @@ def getProfileInfos(_domsDict):
 		profileDict["scrobbled_count"] = int(getHeaderStatus(profileDom)[0]) # Profile Header: Scrobbles
 		profileDict["artists_count"] = int(getHeaderStatus(profileDom)[1]) # Profile Header: Artist Count
 		profileDict["likes_count"] = int(getHeaderStatus(profileDom)[2]) # Profile Header: Loved Tracks
-		profileDict['today_artists'], profileDict['today_listening'] = getTodayListening(profileDict["username"])
+		profileDict['artists_today'], profileDict['today_listening'] = getTodayListening(profileDict["username"])
+		profileDict['artist_count_alltime'] = getArtistAllTimeCount(profileDict["username"], profileDict['artists_today'], 10) # Need: username, [artistsList]
+	
 	if all(key in _domsDict for key in ('following_dom', 'followers_dom')): # Ayrı bir post isteği gerekir.
 		followsDom = [_domsDict["following_dom"], _domsDict["followers_dom"]]
 		profileDict["follows"] = {}
@@ -104,9 +106,9 @@ def printStatus(_profileDict, _react, _username): # _profileDict, _react, _usern
 	elif _profileDict["scrobbled_count"] > 0:
 		print("\nRecent Tracks: realtime tracks is private.")
 
-	printTodayListening(_profileDict['today_listening']) # Need: {artist:artist_count}
-	getArtistAllTimeCount(_username, _profileDict['today_artists']) # Need: username, [artistsList]
-	
+	# Printdefs
+	printTodayAllTime(_profileDict['artist_count_alltime'], _profileDict['today_listening'])
+
 	# Adresses
 	print(f'\nProfile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
 	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
@@ -324,6 +326,34 @@ def getTodayListening(_username):
 		else:
 			return todayArtist, todayTracks
 
+def getArtistAllTimeCount(_username, _artist, process_loop=None):
+	if isinstance(_artist, dict): # Sözlük gönderildiyse keys ile işlem yapılır
+		_artist = _artist.keys()
+
+	artistCount = {}
+	for artist_name in _artist:
+		if process_loop != None:
+			if process_loop != 0:
+				process_loop -= 1
+			else:
+				break
+		artistCountUrl = f'https://www.last.fm/user/{_username}/library/music/{artist_name}?date_preset=ALL'
+		artistCountDom = getDom(getResponse(artistCountUrl))
+		artist_scrobbles = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
+		artistCount[artist_name] = artist_scrobbles # library_header_title, metadata_display
+	return artistCount
+
+def printTodayAllTime(_alltime, _today):
+	print(f'\nYour total contribution to the artist today;')
+	artist_rank = 1
+	for artist_name, today_count in _today.items():
+		try:
+			alltime_count = ' ' + _alltime[artist_name]
+		except:
+			alltime_count = ''
+		print(f'[{artist_rank}]: {artist_name} - {alltime_count} (Today: {today_count})')
+		artist_rank += 1
+
 def printTodayListening(_todayTracks):
 	if bool(_todayTracks): # Dict boş dönmezse
 		print('Today Listening Artists;')
@@ -334,17 +364,11 @@ def printTodayListening(_todayTracks):
 	else: # Dict boş ise false döndürür.
 		print('Bugün dinlenmedi.')
 
-def getArtistAllTimeCount(_username, _artist):
-	if isinstance(_artist, dict): # Sözlük gönderildiyse keys ile işlem yapılır
-		_artist = _artist.keys()
+def printRecentTracks():
+ 	pass # Soon
 
-	artistCount = {}
-	for artist_name in _artist:
-		artistCountUrl = f'https://www.last.fm/user/{_username}/library/music/{artist_name}?date_preset=ALL'
-		artistCountDom = getDom(getResponse(artistCountUrl))
-		artist_scrobbles = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
-		artistCount[artist_name] = artist_scrobbles # library_header_title, metadata_display
-	return artistAllTimeCount
-	
+def printDictValue(_dict):
+	for key, value in _dict.items():
+		print(f'{key} ({value})')
 searchUser(input('Username: @'))
 
