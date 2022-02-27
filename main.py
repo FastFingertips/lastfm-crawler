@@ -64,10 +64,18 @@ def getProfileInfos(_domsDict):
 
 def printStatus(upi, _react, _username): # printStatus(userProfileInfos, _react, _username)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
-	upi_sc = upi["scrobbled_count"]
-	upi_lts = upi["last_tracks"]
 	upi_acot = upi['artist_count_alltime']
+	upi_lts = upi["last_tracks"]
+	upi_sc = upi["scrobbled_count"]
+	upi_ac = upi["artists_count"]
+	upi_lc = upi["likes_count"]
 	upi_tl = upi['today_listening']
+	upi_bi = upi["background_image"]
+	upi_ua = upi["user_avatar"]
+	upi_ss = upi["scrobbling_since"]
+	upi_dn = upi["display_name"]
+	upi_un = upi["username"]
+	
 	# Follow Prints
 	if "follows" in upi:
 		# Following
@@ -84,18 +92,18 @@ def printStatus(upi, _react, _username): # printStatus(userProfileInfos, _react,
 	printRecentTracks(upi_lts, upi_sc) # Last Tracks Prints
 	printTodayAllTime(upi_acot, upi_tl) # Total, Today Prints
 	# Adresses
-	print(f'\nProfile: {upi["display_name"]} (@{upi["username"]})')
-	print(f'Scrobbling Since: {upi["scrobbling_since"]}')
-	print(f'Avatar: {upi["user_avatar"]}')
-	print(f'Background: {upi["background_image"]}')
+	print(f'\nProfile: {upi_dn} (@{upi_un})')
+	print(f'Scrobbling Since: {upi_ss}')
+	print(f'Avatar: {upi_ua}')
+	print(f'Background: {upi_bi}')
 	# Headers
-	print(f'Scrobbles: {upi["scrobbled_count"]} | ', end="")
-	print(f'Artists: {upi["artists_count"]} | ', end ="")
-	print(f'Loved Tracks: {upi["likes_count"]}'),
+	print(f'Scrobbles: {upi_sc} | ', end="")
+	print(f'Artists: {upi_ac} | ', end ="")
+	print(f'Loved Tracks: {upi_lc}'),
 
 	if _react:
 		time.sleep(5) # 5 sec
-		checkChange(upi, _username)
+		checkChange(upi, upi_un)
 
 def checkChange(currentProfileData, _username):
 	while True:	
