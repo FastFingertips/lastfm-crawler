@@ -8,23 +8,22 @@ def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
 		urlDict, domsDict, responsesDict = {},{},{}
 		urlDict['user_url'] = "https://www.last.fm/user/" + _username
 		profileResponseCode = getResponse(urlDict['user_url'])
+		# Get profile page
 		if profileResponseCode.status_code in range(200,299):
 			responsesDict["profile_dom"] = profileResponseCode
-
+		# Get follow pages
 		if _fw:
 			urlDict['fallowing_url'] = urlDict['user_url']+'/following'
 			urlDict['fallowers_url'] = urlDict['user_url']+'/followers'
 			responsesDict["following_dom"] = getResponse(urlDict['fallowing_url'])
 			responsesDict["followers_dom"] = getResponse(urlDict['fallowers_url'])
-
+		# Get response doms
 		for responseKey, responseValue in responsesDict.items():
 			domsDict[responseKey] = getDom(responseValue)
-
-		userProfileInfos = getProfileInfos(domsDict)
-
+		userProfileInfos = getProfileInfos(domsDict) # Get profile infos
+		# Prints
 		if _statusPrint:
 			printStatus(userProfileInfos, _react, _username)
-
 		return userProfileInfos
 
 def getResponse(_url):
@@ -63,58 +62,40 @@ def getProfileInfos(_domsDict):
 
 	return profileDict
 
-def printStatus(_profileDict, _react, _username): # _profileDict, _react, _username
+def printStatus(upi, _react, _username): # printStatus(userProfileInfos, _react, _username)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
+	upi_sc = upi["scrobbled_count"]
+	upi_lts = upi["last_tracks"]
+	upi_acot = upi['artist_count_alltime']
+	upi_tl = upi['today_listening']
 	# Follow Prints
-	if "follows" in _profileDict:
+	if "follows" in upi:
 		# Following
-		pd_followingCounts = _profileDict["follows"]["following_counts"]
-		pd_following = _profileDict["follows"]["following"]
+		upi_fgc = upi["follows"]["following_counts"]
+		upi_fg = upi["follows"]["following"]
 		# Followers
-		pd_followersCounts = _profileDict["follows"]["followers_counts"]
-		pd_followers = _profileDict["follows"]["followers"]
+		upi_fsc = upi["follows"]["followers_counts"]
+		upi_fs = upi["follows"]["followers"]
 		# Followback
-		pd_followingFB = _profileDict["follows"]["following_gt"]
-		pd_fbCounts = _profileDict["follows"]["fb_count"]
-		pd_nofbCounts = _profileDict["follows"]["no_fb_count"]
-		print(f'\nFollows;')
-		# Prints
-		if False:
-			printus("Following", pd_following, pd_followingCounts) # Following
-			printus("Followers", pd_followers, pd_followersCounts) # Followers
-			printus("Followback", pd_followingFB, pd_fbCounts)
-		print(f"Following: {pd_followingCounts}, Followers: {pd_followersCounts}, Followback: {pd_fbCounts}")
-		if pd_followingCounts != pd_fbCounts:
-			print(f"Users who don't follow you back ({pd_nofbCounts});")
-			f = followDict(pd_following, pd_followers, pd_followingFB)
-			for user in f:
-				if f[user]['following'] == True and f[user]['follower'] == False:
-					print(f"FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}] | {f[user]['link']}, @{user}")
-		else:
-			print(f'{pd_fbCounts} users you follow are following you.')
-	
-	# Printdefs
-	printRecentTracks(_profileDict) # Last Tracks Prints
-	printTodayAllTime(_profileDict['artist_count_alltime'], _profileDict['today_listening']) # Total, Today Prints
-
+		upi_fb = upi["follows"]["following_gt"]
+		upi_fbc = upi["follows"]["fb_count"]
+		upi_nofbc = upi["follows"]["no_fb_count"]
+		printFollowStat(upi_fg, upi_fs , upi_fb, upi_fgc, upi_fsc, upi_fbc, upi_nofbc)
+	printRecentTracks(upi_lts, upi_sc) # Last Tracks Prints
+	printTodayAllTime(upi_acot, upi_tl) # Total, Today Prints
 	# Adresses
-	print(f'\nProfile: {_profileDict["display_name"]} (@{_profileDict["username"]})')
-	print(f'Scrobbling Since: {_profileDict["scrobbling_since"]}')
-	print(f'Avatar: {_profileDict["user_avatar"]}')
-	print(f'Background: {_profileDict["background_image"]}')
+	print(f'\nProfile: {upi["display_name"]} (@{upi["username"]})')
+	print(f'Scrobbling Since: {upi["scrobbling_since"]}')
+	print(f'Avatar: {upi["user_avatar"]}')
+	print(f'Background: {upi["background_image"]}')
 	# Headers
-	print(f'Scrobbles: {_profileDict["scrobbled_count"]} | ', end="")
-	print(f'Artists: {_profileDict["artists_count"]} | ', end ="")
-	print(f'Loved Tracks: {_profileDict["likes_count"]}'),
+	print(f'Scrobbles: {upi["scrobbled_count"]} | ', end="")
+	print(f'Artists: {upi["artists_count"]} | ', end ="")
+	print(f'Loved Tracks: {upi["likes_count"]}'),
 
 	if _react:
 		time.sleep(5) # 5 sec
-		checkChange(_profileDict, _username)
-
-def printus(dict_name, user_dict, pd_counts): # dict, counts
-	print(f'{dict_name}: ({pd_counts});')
-	for user,b in user_dict.items(): # user, bool
-		print(f'[{b}]: {user}')
+		checkChange(upi, _username)
 
 def checkChange(currentProfileData, _username):
 	while True:	
@@ -352,22 +333,44 @@ def printTodayListening(_todayTracks):
 	else: # Dict boş ise false döndürür.
 		print('Bugün dinlenmedi.')
 
-def printRecentTracks(pDict):
-	if pDict['last_tracks'] != None:
+def printRecentTracks(last_tracks, scrobbled_count):
+	if last_tracks != None:
 		print(f'\nRecent Tracks;', end='')
-		recentTracks = pDict['last_tracks']
+		recentTracks = last_tracks
 		for trackNo in recentTracks:
 			print(f'\n[{trackNo+1}]:', end=" ")
 			for trackValueNo in range(len(recentTracks[trackNo])):
 				print(recentTracks[trackNo][trackValueNo], end= " | ")
 		else:
 			print()
-	elif pDict["scrobbled_count"] > 0:
+	elif scrobbled_count > 0:
 		print("\nRecent Tracks: realtime tracks is private.")
 
 def printDictValue(_dict):
 	for key, value in _dict.items():
 		print(f'{key} ({value})')
+
+def printus(dict_name, user_dict, count_dict):
+	print(f'{dict_name}: ({count_dict});')
+	for user,b in user_dict.items(): # user, bool
+		print(f'[{b}]: {user}')
+
+def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
+	print(f'\nFollows;')
+	if False:
+		printus("Following", fg, fgc) # Following
+		printus("Followers", fs, fsc) # Followers
+		printus("Followback", fb, fbc)
+
+	print(f"Following: {fgc}, Followers: {fsc}, Followback: {fbc}")
+	if fgc != fbc:
+		print(f"Users who don't follow you back ({nofbc});")
+		f = followDict(fg, fs, fb)
+		for user in f:
+			if f[user]['following'] == True and f[user]['follower'] == False:
+				print(f"FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}] | {f[user]['link']}, @{user}")
+	else:
+		print(f'{fbc} users you follow are following you.')
 
 searchUser(input('Username: @'))
 
