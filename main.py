@@ -121,26 +121,28 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 					msgLastTrack = ''
 
 
-				import os
-				ico_name = 'lastfm.ico'
-				while True:
-					if os.path.exists(ico_name):
-						runNotifier(f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
-						f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}', 
-						ico_name)
-						break
-					else:
-						ico_data = requests.get('https://www.last.fm/static/images/favicon.702b239b6194.ico').content
-						with open(ico_name, 'wb') as handler:
-							handler.write(ico_data)
+
+				runNotifier(f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
+				f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}')
+
 
 
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True)
 
-def runNotifier(l1=' ', l2=' ', ico=None):
+def runNotifier(l1=' ', l2=' '):
+	import os
+	ico_name = 'lastfm.ico'
 	notifier = ToastNotifier()
-	notifier.show_toast(l1, l2, icon_path=ico)
+	while True:
+		if os.path.exists(ico_name):
+			notifier.show_toast(l1, l2)
+			break
+		else:
+			ico_data = requests.get('https://www.last.fm/static/images/favicon.702b239b6194.ico').content
+			with open(ico_name, 'wb') as handler:
+				handler.write(ico_data)
+
 
 def getHeaderStatus(_profileDom):
 	headerStatus = [0, 0, 0]
