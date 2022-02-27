@@ -23,7 +23,7 @@ def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
 		userProfileInfos = getProfileInfos(domsDict) # Get profile infos
 		# Prints
 		if _statusPrint:
-			printStatus(userProfileInfos, _react, _username)
+			printStatus(userProfileInfos, _react)
 		return userProfileInfos
 
 def getResponse(_url):
@@ -62,7 +62,7 @@ def getProfileInfos(_domsDict):
 
 	return profileDict
 
-def printStatus(upi, _react, _username): # printStatus(userProfileInfos, _react, _username)
+def printStatus(upi, _react): # printStatus(userProfileInfos, _react)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
 	upi_acot = upi['artist_count_alltime']
 	upi_lts = upi["last_tracks"]
@@ -75,8 +75,6 @@ def printStatus(upi, _react, _username): # printStatus(userProfileInfos, _react,
 	upi_ss = upi["scrobbling_since"]
 	upi_dn = upi["display_name"]
 	upi_un = upi["username"]
-	
-	# Follow Prints
 	if "follows" in upi:
 		# Following
 		upi_fgc = upi["follows"]["following_counts"]
