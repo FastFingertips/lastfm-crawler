@@ -1,7 +1,9 @@
+import os
+import time
+from datetime import date, datetime
+import requests
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
-import requests
-import time
 
 def searchUser(_username, _statusPrint=True, _react=True, _fw=True):
 	if _username:
@@ -109,7 +111,7 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 		if currentProfileData != newProfileData:
 			if newProfileData["scrobbled_count"] != currentProfileData["scrobbled_count"]:
 
-				# Notifier
+				# Get notifier data
 				if currentProfileData["last_tracks"] != None:
 					song_name = currentProfileData["last_tracks"][0][0]
 					artist_name = currentProfileData["last_tracks"][0][1]
@@ -120,29 +122,34 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 				else:
 					msgLastTrack = ''
 
-
-
 				runNotifier(f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
 				f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}')
-
-
 
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True)
 
 def runNotifier(l1=' ', l2=' '):
-	import os
 	ico_name = 'lastfm.ico'
+	ico_url = 'https://www.last.fm/static/images/favicon.702b239b6194.ico'
 	notifier = ToastNotifier()
 	while True:
 		if os.path.exists(ico_name):
 			notifier.show_toast(l1, l2, icon_path=ico_name)
 			break
 		else:
-			ico_data = requests.get('https://www.last.fm/static/images/favicon.702b239b6194.ico').content
-			with open(ico_name, 'wb') as handler:
-				handler.write(ico_data)
+			downloadImage(ico_name, ico_url)
 
+def downloadImage(img_name, url, mode='wb'):
+	if '.' not in img_name:
+			ex = url[url.rfind('.'):]
+	else:
+			ex = ''
+	if not os.path.exists(f"{img_name}{ex}"):
+		ico_data = requests.get(url).content
+		with open(f"{img_name}{ex}", mode) as handler:
+			handler.write(ico_data)
+	else:
+		pass
 
 def getHeaderStatus(_profileDom):
 	headerStatus = [0, 0, 0]
@@ -158,6 +165,9 @@ def getHeaderStatus(_profileDom):
 def getBackgroundImage(_profileDom):
 	try:
 		backgroundImageUrl = _profileDom.find("div", {"class":"header-background header-background--has-image"})["style"][22:-2]
+		bgDir = 'backgrounds'
+		dirCreate('bgDir')
+		downloadImage(f"{bgDir}/{getUsername(_profileDom)}-bg-{getCurrentSession()}", backgroundImageUrl)
 	except:
 		backgroundImageUrl = "No Background (Last.fm default background)"
 	return backgroundImageUrl # Replaced: background-image: url();
@@ -170,13 +180,26 @@ def getDisplayName(_profileDom):
 	profileDisplayName= _profileDom.find("span", {"class":"header-title-display-name"})
 	return profileDisplayName.text.strip()
 
+def getCurrentSession():
+	return datetime.now().strftime('%Y%m%d')
+
 def getUserAvatar(_profileDom):
 	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
 	# defaultImageUrl:("https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98.png") 
 	profileAvatarUrl = _profileDom.find("meta", property="og:image")["content"]
 	if defaultAvatarId in profileAvatarUrl:
 		profileAvatarUrl = "No Avatar (Last.fm default avatar)"
+	else:
+		avatarDir = 'avatars'
+		dirCreate('avatars')
+		downloadImage(f"{avatarDir}/{getUsername(_profileDom)}-avatar-{getCurrentSession()}", profileAvatarUrl)
 	return profileAvatarUrl 
+
+def dirCreate(dirName):
+	try:
+		os.mkdir(dirName) # Directory Created
+	except FileExistsError:
+		pass # Directory already exists
 
 def getUserFollowingCount(_followingDom):
 	while True:
@@ -291,7 +314,6 @@ def followDict(_following, _followers, _fb):
 	return f
 
 def getTodayListening(_username):
-	from datetime import date
 	today = date.today()
 	today = today.strftime("%Y-%m-%d")
 	pageNo = 1
@@ -389,7 +411,7 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 		for user in f:
 			if f[user]['following'] == True and f[user]['follower'] == False:
 				print(f"FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}] | {f[user]['link']}, @{user}")
-	else:
+	elif fgc != 0:
 		print(f'{fbc} users you follow are following you.')
 
 searchUser(input('Username: @'))
