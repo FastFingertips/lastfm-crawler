@@ -117,18 +117,30 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 					artistCountDom = getDom(getResponse(artistCountUrl))
 					artistCount = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
 					msgLastTrack = f'\nLast track: {song_name} | {artist_name} ({artistCount})'
-
 				else:
 					msgLastTrack = ''
 
-				notifier = ToastNotifier()
-				notifier.show_toast(
-					f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
-					f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}',
-					icon_path='lastfm.ico')
+
+				import os
+				ico_name = 'lastfm.ico'
+				while True:
+					if os.path.exists(ico_name):
+						runNotifier(f'Profile: {currentProfileData["display_name"]} (@{currentProfileData["username"]})',
+						f'Current Scrobbles: {newProfileData["scrobbled_count"]}{msgLastTrack}', 
+						ico_name)
+						break
+					else:
+						ico_data = requests.get('https://www.last.fm/static/images/favicon.702b239b6194.ico').content
+						with open(ico_name, 'wb') as handler:
+							handler.write(ico_data)
+
 
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True)
+
+def runNotifier(l1=' ', l2=' ', ico=None):
+	notifier = ToastNotifier()
+	notifier.show_toast(l1, l2, icon_path=ico)
 
 def getHeaderStatus(_profileDom):
 	headerStatus = [0, 0, 0]
