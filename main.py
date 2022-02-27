@@ -103,7 +103,7 @@ def printStatus(upi, _react): # printStatus(userProfileInfos, _react)
 		time.sleep(5) # 5 sec
 		checkChange(upi, upi_un)
 
-def checkChange(currentProfileData, _username):
+def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 	while True:	
 		newProfileData = searchUser(_username, False) 	
 		if currentProfileData != newProfileData:
@@ -128,7 +128,7 @@ def checkChange(currentProfileData, _username):
 					icon_path='lastfm.ico')
 
 			currentProfileData = newProfileData
-			printStatus(currentProfileData, True, _username)
+			printStatus(currentProfileData, True)
 
 def getHeaderStatus(_profileDom):
 	headerStatus = [0, 0, 0]
