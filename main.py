@@ -137,7 +137,7 @@ def runNotifier(l1=' ', l2=' '):
 	downloadImage(ico_dir, ico_name, ico_url)
 	notifier.show_toast(l1, l2, icon_path=ico_name)
 
-def downloadImage(dirc, img_name, img_url, mode='wb'):
+def downloadImage(dirc, img_name, img_url, mode='wb'): # downloadImage('images/avatars', 'MyAvatar', 'AvatarUrl')
 	if dirc != None:
 		dirCreate(dirc)
 		img_name = f'{dirc}/{img_name}'
