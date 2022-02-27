@@ -129,27 +129,61 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 			printStatus(currentProfileData, True)
 
 def runNotifier(l1=' ', l2=' '):
+	ico_dir = 'images/media'
 	ico_name = 'lastfm.ico'
 	ico_url = 'https://www.last.fm/static/images/favicon.702b239b6194.ico'
 	notifier = ToastNotifier()
-	while True:
-		if os.path.exists(ico_name):
-			notifier.show_toast(l1, l2, icon_path=ico_name)
-			break
-		else:
-			downloadImage(ico_name, ico_url)
+	
+	downloadImage(ico_dir, ico_name, ico_url)
+	notifier.show_toast(l1, l2, icon_path=ico_name)
 
-def downloadImage(img_name, url, mode='wb'):
+def downloadImage(dirc, img_name, url, mode='wb'):
+	if dirc != None:
+		dirCreate(dirc)
+		img_name = f'{dirc}/{img_name}'
+
 	if '.' not in img_name:
-			ex = url[url.rfind('.'):]
+		ex = url[url.rfind('.'):]
 	else:
-			ex = ''
+		ex = ''
+
 	if not os.path.exists(f"{img_name}{ex}"):
 		ico_data = requests.get(url).content
 		with open(f"{img_name}{ex}", mode) as handler:
 			handler.write(ico_data)
+		alreadyFile = False
 	else:
-		pass
+		alreadyFile = True
+	return alreadyFile 
+
+def getBackgroundImage(_profileDom):
+	try:
+		backgroundImageUrl = _profileDom.find("div", {"class":"header-background header-background--has-image"})["style"][22:-2]
+		downloadImage('images/background', f'{getUsername(_profileDom)}-bg-{getCurrentSession()}', backgroundImageUrl)
+	except:
+		backgroundImageUrl = "No Background (Last.fm default background)"
+	return backgroundImageUrl # Replaced: background-image: url();
+
+def getUserAvatar(_profileDom):
+	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
+	# defaultImageUrl:("https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98.png") 
+	profileAvatarUrl = _profileDom.find("meta", property="og:image")["content"]
+	if defaultAvatarId in profileAvatarUrl:
+		profileAvatarUrl = "No Avatar (Last.fm default avatar)"
+	else:
+		downloadImage('images/avatar', f'{getUsername(_profileDom)}-av-{getCurrentSession()}', profileAvatarUrl)
+	return profileAvatarUrl 
+
+def dirCreate(dirName):
+	dirList = dirName.split('/')
+	for d in dirList:
+		try:
+			if d == dirList[-1] :
+				os.mkdir(dirName)
+			else:
+				os.mkdir(d) # Directory Created
+		except FileExistsError:
+			pass # Directory already exists
 
 def getHeaderStatus(_profileDom):
 	headerStatus = [0, 0, 0]
@@ -162,16 +196,6 @@ def getHeaderStatus(_profileDom):
 			pass
 	return headerStatus
 
-def getBackgroundImage(_profileDom):
-	try:
-		backgroundImageUrl = _profileDom.find("div", {"class":"header-background header-background--has-image"})["style"][22:-2]
-		bgDir = 'backgrounds'
-		dirCreate('bgDir')
-		downloadImage(f"{bgDir}/{getUsername(_profileDom)}-bg-{getCurrentSession()}", backgroundImageUrl)
-	except:
-		backgroundImageUrl = "No Background (Last.fm default background)"
-	return backgroundImageUrl # Replaced: background-image: url();
-
 def getUsername(_profileDom):
 	profileOwner = _profileDom.find("h1", {"class":"header-title"})
 	return profileOwner.text.strip()
@@ -182,24 +206,6 @@ def getDisplayName(_profileDom):
 
 def getCurrentSession():
 	return datetime.now().strftime('%Y%m%d')
-
-def getUserAvatar(_profileDom):
-	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
-	# defaultImageUrl:("https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98.png") 
-	profileAvatarUrl = _profileDom.find("meta", property="og:image")["content"]
-	if defaultAvatarId in profileAvatarUrl:
-		profileAvatarUrl = "No Avatar (Last.fm default avatar)"
-	else:
-		avatarDir = 'avatars'
-		dirCreate('avatars')
-		downloadImage(f"{avatarDir}/{getUsername(_profileDom)}-avatar-{getCurrentSession()}", profileAvatarUrl)
-	return profileAvatarUrl 
-
-def dirCreate(dirName):
-	try:
-		os.mkdir(dirName) # Directory Created
-	except FileExistsError:
-		pass # Directory already exists
 
 def getUserFollowingCount(_followingDom):
 	while True:
