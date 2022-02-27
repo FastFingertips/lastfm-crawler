@@ -137,19 +137,17 @@ def runNotifier(l1=' ', l2=' '):
 	downloadImage(ico_dir, ico_name, ico_url)
 	notifier.show_toast(l1, l2, icon_path=ico_name)
 
-def downloadImage(dirc, img_name, url, mode='wb'):
+def downloadImage(dirc, img_name, img_url, mode='wb'):
 	if dirc != None:
 		dirCreate(dirc)
 		img_name = f'{dirc}/{img_name}'
 
-	if '.' not in img_name:
-		ex = url[url.rfind('.'):]
-	else:
-		ex = ''
+	if '.' not in img_name: # Dosya uzantısı isimde yoksa url sonundan alınır.
+		img_name = f"{img_name}{img_url[img_url.rfind('.'):]}"
 
-	if not os.path.exists(f"{img_name}{ex}"):
-		ico_data = requests.get(url).content
-		with open(f"{img_name}{ex}", mode) as handler:
+	if not os.path.exists(img_name):
+		ico_data = requests.get(img_url).content
+		with open(img_name, mode) as handler:
 			handler.write(ico_data)
 		alreadyFile = False
 	else:
