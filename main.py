@@ -136,7 +136,7 @@ def runNotifier(l1=' ', l2=' '):
 	notifier = ToastNotifier()
 	while True:
 		if os.path.exists(ico_name):
-			notifier.show_toast(l1, l2)
+			notifier.show_toast(l1, l2, icon_path=ico_name)
 			break
 		else:
 			ico_data = requests.get('https://www.last.fm/static/images/favicon.702b239b6194.ico').content
