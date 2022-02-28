@@ -128,19 +128,25 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True)
 
-def runNotifier(l1=' ', l2=' '):
-	ico_dir = 'images/media'
-	ico_name = 'lastfm.ico'
-	ico_url = 'https://www.last.fm/static/images/favicon.702b239b6194.ico'
-	notifier = ToastNotifier()
-	
-	downloadImage(ico_dir, ico_name, ico_url)
-	notifier.show_toast(l1, l2, icon_path=ico_name)
+def getFaviconUrl(dom):
+	return dom.find("link", {"rel":"icon"})['href']
 
-def downloadImage(dirc, img_name, img_url, mode='wb'): # downloadImage('images/avatars', 'MyAvatar', 'AvatarUrl')
-	if dirc != None:
-		dirCreate(dirc)
-		img_name = f'{dirc}/{img_name}'
+def runNotifier(l1=' ', l2=' '):
+	img_dir = 'images/media'
+	img_name = 'lastfm.ico'
+	img_path = f'{img_dir}/{img_name}'
+
+	if not os.path.exists(img_path): # img exist
+		img_url = f"https://www.last.fm{getFaviconUrl(getDom(getResponse('https://www.last.fm')))}"
+		downloadImage(img_dir, img_name, img_url)
+
+	notifier = ToastNotifier()
+	notifier.show_toast(l1, l2, icon_path=img_path)
+
+def downloadImage(img_dir, img_name, img_url, mode='wb'): # downloadImage('images/avatars', 'MyAvatar', 'AvatarUrl')
+	if img_dir != None:
+		dirCreate(img_dir)
+		img_name = f'{img_dir}/{img_name}'
 
 	if '.' not in img_name: # Dosya uzantısı isimde yoksa url sonundan alınır.
 		img_name = f"{img_name}{img_url[img_url.rfind('.'):]}"
