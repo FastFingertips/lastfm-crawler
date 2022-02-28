@@ -136,7 +136,7 @@ def runNotifier(l1=' ', l2=' '):
 	img_name = 'lastfm.ico'
 	img_path = f'{img_dir}/{img_name}'
 
-	if not os.path.exists(img_path): # img exist
+	if not os.path.exists(img_path): # ico not exist
 		img_url = f"https://www.last.fm{getFaviconUrl(getDom(getResponse('https://www.last.fm')))}"
 		downloadImage(img_dir, img_name, img_url)
 
@@ -152,9 +152,10 @@ def downloadImage(img_dir, img_name, img_url, mode='wb'): # downloadImage('image
 		img_name = f"{img_name}{img_url[img_url.rfind('.'):]}"
 
 	if not os.path.exists(img_name):
-		ico_data = requests.get(img_url).content
+		img_response = getResponse(img_url)
+		img_content = img_response.content
 		with open(img_name, mode) as handler:
-			handler.write(ico_data)
+			handler.write(img_content)
 		alreadyFile = False
 	else:
 		alreadyFile = True
