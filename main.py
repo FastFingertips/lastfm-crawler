@@ -128,16 +128,22 @@ def checkChange(currentProfileData, _username): # checkChange(upi, upi_un)
 			currentProfileData = newProfileData
 			printStatus(currentProfileData, True)
 
-def getFaviconUrl(dom):
-	return dom.find("link", {"rel":"icon"})['href']
+def getFaviconUrl(_url): # Belirtilen sayfadaki iconu çeker.
+	iconResponse = getResponse(_url)
+	if iconResponse.status_code in range(200,299):
+		iconDom = getDom(iconResponse)
+		iconUrl = iconDom.find("link", {"rel":"icon"})['href']
+		return iconUrl # return '/static/images/favicon.702b239b6194.ico'
+	return False
 
 def runNotifier(l1=' ', l2=' '):
+	ico_domain = 'https://www.last.fm'
 	img_dir = 'images/media'
 	img_name = 'lastfm.ico'
 	img_path = f'{img_dir}/{img_name}'
 
 	if not os.path.exists(img_path): # ico not exist
-		img_url = f"https://www.last.fm{getFaviconUrl(getDom(getResponse('https://www.last.fm')))}"
+		img_url = f'{ico_domain}{getFaviconUrl(ico_domain)}'
 		downloadImage(img_dir, img_name, img_url)
 
 	notifier = ToastNotifier()
