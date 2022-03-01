@@ -240,11 +240,11 @@ def getUsername(_profileDom):
 	profileOwner = _profileDom.find("h1", {"class":"header-title"})
 	return profileOwner.text.strip()
 
-def getDisplayName(_profileDom):
+def getDisplayName(profile_dom):
 	if defStatus:
 		print(f'Process: {getDisplayName.__name__}')
 	
-	profileDisplayName= _profileDom.find("span", {"class":"header-title-display-name"})
+	profileDisplayName = profile_dom.find("span", {"class":"header-title-display-name"})
 	return profileDisplayName.text.strip()
 
 def getCurrentSession(get_length=None):
