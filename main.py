@@ -48,7 +48,7 @@ def getProfileInfos(_domsDict):
 		profileDict["artists_count"] = int(getHeaderStatus(profileDom)[1]) # Profile Header: Artist Count
 		profileDict["likes_count"] = int(getHeaderStatus(profileDom)[2]) # Profile Header: Loved Tracks
 		profileDict['artists_today'], profileDict['today_listening'] = getTodayListening(profileDict["username"])
-		profileDict['artist_count_alltime'] = getArtistAllTimeCount(profileDict["username"], profileDict['artists_today'], 10) # Need: username, [artistsList]
+		profileDict['artist_count_alltime'] = getArtistAllTimeCount(profileDict["username"], profileDict['artists_today'], None) # Need: username, [artistsList]
 	
 	if all(key in _domsDict for key in ('following_dom', 'followers_dom')): # Ayrı bir post isteği gerekir.
 		followsDom = [_domsDict["following_dom"], _domsDict["followers_dom"]]
@@ -168,21 +168,25 @@ def downloadImage(img_dir, img_name, img_url, mode='wb'): # downloadImage('image
 	return alreadyFile 
 
 def getBackgroundImage(_profileDom):
+	backgroundPath = 'images/background'
+	backgroundName = f'{getUsername(_profileDom)}-bg-{getCurrentSession()}'
 	try:
 		backgroundImageUrl = _profileDom.find("div", {"class":"header-background header-background--has-image"})["style"][22:-2]
-		downloadImage('images/background', f'{getUsername(_profileDom)}-bg-{getCurrentSession()}', backgroundImageUrl)
+		downloadImage(backgroundPath, backgroundName, backgroundImageUrl)
 	except:
 		backgroundImageUrl = "No Background (Last.fm default background)"
 	return backgroundImageUrl # Replaced: background-image: url();
 
 def getUserAvatar(_profileDom):
+	avatarPath = 'images/avatar'
+	avatarName =  f'{getUsername(_profileDom)}-av-{getCurrentSession()}'
 	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
 	# defaultImageUrl:("https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98.png") 
 	profileAvatarUrl = _profileDom.find("meta", property="og:image")["content"]
 	if defaultAvatarId in profileAvatarUrl:
 		profileAvatarUrl = "No Avatar (Last.fm default avatar)"
 	else:
-		downloadImage('images/avatar', f'{getUsername(_profileDom)}-av-{getCurrentSession()}', profileAvatarUrl)
+		downloadImage(avatarPath, avatarName, profileAvatarUrl)
 	return profileAvatarUrl 
 
 def dirCreate(dirName):
@@ -222,8 +226,7 @@ def removal(inside, obj=' ', return_type=None):
 			inside = int(inside)
 		elif return_type == float:
 			inside = float(inside)
-
-	print(f'{inside}: {type(inside)}')
+	# print(f'{inside}: {type(inside)}')
 	return inside
 
 def getUsername(_profileDom):
@@ -429,14 +432,14 @@ def printRecentTracks(last_tracks, scrobbled_count):
 	elif scrobbled_count > 0:
 		print("\nRecent Tracks: realtime tracks is private.")
 
-def printDictValue(_dict):
-	for key, value in _dict.items():
+def printDictValue(print_dict):
+	for key, value in print_dict.items():
 		print(f'{key} ({value})')
 
 def printus(dict_name, user_dict, count_dict):
 	print(f'{dict_name}: ({count_dict});')
-	for user,b in user_dict.items(): # user, bool
-		print(f'[{b}]: {user}')
+	for user, value in user_dict.items(): # user, bool
+		print(f'[{value}]: {user}')
 
 def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 	print(f'\nFollows;')
