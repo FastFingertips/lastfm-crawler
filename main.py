@@ -233,12 +233,12 @@ def getRomoval(inside, obj=' ', return_type=None):
 	# print(f'{inside}: {type(inside)}')
 	return inside
 
-def getUsername(_profileDom):
+def getUsername(profile_dom):
 	if defStatus:
 		print(f'Process: {getUsername.__name__}')
 
-	profileOwner = _profileDom.find("h1", {"class":"header-title"})
-	return profileOwner.text.strip()
+	profileUserName = profile_dom.find("h1", {"class":"header-title"})
+	return profileUserName.text.strip()
 
 def getDisplayName(profile_dom):
 	if defStatus:
