@@ -201,11 +201,30 @@ def getHeaderStatus(_profileDom):
 	headers = _profileDom.find_all("div", {"class": "header-metadata-display"})
 	for i in range(len(headers)):
 		headerStatus[i] = headers[i].text.strip()
-		try:
-			headerStatus[i] = headerStatus[i].replace(",","")
-		except:
-			pass
+		headerStatus[i] = removal(headerStatus[i],',', int) # {} içerisindeki {}'i kaldır ve {} olarak geri al.
 	return headerStatus
+
+def removal(inside, obj=' ', return_type=None):
+	if return_type == None:
+		return_type = type(inside)
+    
+	if type(inside) != str: # int'de işlem yapılamaz
+		inside = str(inside)
+    
+	if type(obj) != str:
+		obj = str(obj)
+
+	if obj in inside:
+		inside = inside.replace(obj,'')
+		
+	if return_type != type(inside):
+		if return_type == int:
+			inside = int(inside)
+		elif return_type == float:
+			inside = float(inside)
+
+	print(f'{inside}: {type(inside)}')
+	return inside
 
 def getUsername(_profileDom):
 	profileOwner = _profileDom.find("h1", {"class":"header-title"})
