@@ -371,26 +371,31 @@ def getArtistAllTimeCount(_username, _artist, process_loop=None):
 		artistCount[artist_name] = artist_scrobbles # library_header_title, metadata_display
 	return artistCount
 
-def printTodayAllTime(_alltime, _today):
-	print(f'\nYour total contribution to the artist today;')
-	artist_rank = 1
-	for artist_name, today_count in _today.items():
-		try:
-			alltime_count = ' ' + _alltime[artist_name]
-		except:
-			alltime_count = ''
-		print(f'[{artist_rank}]: {artist_name} - {alltime_count} (Today: {today_count})')
-		artist_rank += 1
+def getDictKeyNo(key, d): # key, dict
+	dictKeys = d.keys()
+	dictKeysList = list(dictKeys)
+	keyIndexNo = dictKeysList.index(key) + 1
+	return keyIndexNo
 
-def printTodayListening(_todayTracks):
-	if bool(_todayTracks): # Dict boş dönmezse
+def printTodayAllTime(artists_alltime, artists_today):
+	print(f'\nYour total contribution to the artist today;')
+	for todayArtistName, todayArtistCount in artists_today.items():
+		todayArtistNo = getDictKeyNo(todayArtistName, artists_today) # belirtilen anahtarın sözlükte kaçıncı sırada olduğunu çek
+		try:
+			count_msg = f'{artists_alltime[todayArtistName]} (Today: {todayArtistCount})'
+		except:
+			count_msg = f'Today: {todayArtistCount}'
+		finally:
+			print(f'[{todayArtistNo}]: {todayArtistName} - {count_msg}')
+
+def printTodayListening(tracks_today):
+	if bool(tracks_today): # Dict boş dönmezse
 		print('Today Listening Artists;')
-		artist_rank = 1
-		for artist_name, artist_count in _todayTracks.items():
-			print(f'{artist_rank}: {artist_name} ({artist_count})')
-			artist_rank += 1
+		for todayArtistName, todayArtistCount in tracks_today.items():
+			todayArtistRank = getDictKeyNo(todayArtistName, tracks_today) # belirtilen anahtarın sözlükte kaçıncı sırada olduğunu çek
+			print(f'{todayArtistRank}: {todayArtistName} ({todayArtistCount})')
 	else: # Dict boş ise false döndürür.
-		print('Bugün dinlenmedi.')
+		print('No songs were listened to today.')
 
 def printRecentTracks(last_tracks, scrobbled_count):
 	if last_tracks != None:
