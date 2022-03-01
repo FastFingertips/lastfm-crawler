@@ -209,29 +209,29 @@ def getHeaderStatus(_profileDom):
 		headerStatus[i] = getRomoval(headerStatus[i],',', int) # {} içerisindeki {}'i kaldır ve {} olarak geri al.
 	return headerStatus
 
-def getRomoval(inside, obj=' ', return_type=None):
+def getRomoval(inside_obj, find_obj=' ', return_type=None):
 	if defStatus:
 		print(f'Process: {getRomoval.__name__}')
 
 	if return_type == None:
-		return_type = type(inside)
+		return_type = type(inside_obj)
     
-	if type(inside) != str: # int'de işlem yapılamaz
-		inside = str(inside)
+	if type(inside_obj) != str: # int'de işlem yapılamaz
+		inside_obj = str(inside_obj)
     
-	if type(obj) != str:
-		obj = str(obj)
+	if type(find_obj) != str:
+		find_obj = str(find_obj)
 
-	if obj in inside:
-		inside = inside.replace(obj,'')
+	if find_obj in inside_obj:
+		inside_obj = inside_obj.replace(find_obj,'')
 		
-	if return_type != type(inside):
+	if return_type != type(inside_obj):
 		if return_type == int:
-			inside = int(inside)
+			inside_obj = int(inside_obj)
 		elif return_type == float:
-			inside = float(inside)
-	# print(f'{inside}: {type(inside)}')
-	return inside
+			inside_obj = float(inside_obj)
+	# print(f'{inside_obj}: {type(inside_obj)}')
+	return inside_obj
 
 def getUsername(profile_dom):
 	if defStatus:
