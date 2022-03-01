@@ -252,14 +252,18 @@ def getCurrentSession(get_length=None):
 		print(f'Process: {getCurrentSession.__name__}')
 	
 	'''
-		get_length ? = ? 
-		get_length 8 = %Y%m%d
+		get_length 14 = %Y%m%d%H%M%S
+		get_length 12 = %Y%m%d%H%M
+		get_length 10 = %Y%m%d%H
+		get_length 8 = %Y%m%d (Default: None)
 		get_length 6 = %Y%m
 		get_length 4 = %Y
 	'''
-	session = datetime.now().strftime('%Y%m%d')
+	session = datetime.now().strftime('%Y%m%d%H%M%S') #YearMonthDayHourMinuteSecond
 	if get_length != None:
-		print(session[:get_length])	
+		session = session[:get_length]
+	else:
+		session = session[0:8] # %Y%m%d
 	return session
 
 def getUserFollowingCount(following_dom):
