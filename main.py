@@ -175,7 +175,7 @@ def getBackgroundImage(_profileDom):
 		print(f'Process: {getBackgroundImage.__name__}')
 
 	backgroundPath = 'images/background'
-	backgroundName = f'{getUsername(_profileDom)}-bg-{getCurrentSession(8)}'
+	backgroundName = f'{getUsername(_profileDom)}-bg-{getCurrentSession()}'
 	try:
 		backgroundImageUrl = _profileDom.find("div", {"class":"header-background header-background--has-image"})["style"][22:-2]
 		doDownloadImage(backgroundPath, backgroundName, backgroundImageUrl)
@@ -188,7 +188,7 @@ def getUserAvatar(_profileDom):
 		print(f'Process: {getUserAvatar.__name__}')
 
 	avatarPath = 'images/avatar'
-	avatarName =  f'{getUsername(_profileDom)}-av-{getCurrentSession(8)}'
+	avatarName =  f'{getUsername(_profileDom)}-av-{getCurrentSession()}'
 	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
 	# defaultImageUrl:("https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98.png") 
 	profileAvatarUrl = _profileDom.find("meta", property="og:image")["content"]
@@ -260,10 +260,10 @@ def getCurrentSession(get_length=None):
 		get_length 4 = %Y
 	'''
 	session = datetime.now().strftime('%Y%m%d%H%M%S') #YearMonthDayHourMinuteSecond
-	if get_length != None:
-		session = session[:get_length]
-	else:
+	if get_length == None:
 		session = session[0:8] # %Y%m%d
+	else:
+		session = session[:get_length]
 	return session
 
 def getUserFollowingCount(following_dom):
