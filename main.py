@@ -8,8 +8,6 @@ from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
 
-defStatus = True
-
 ## -- DO DEFS --
 
 def getLastLineContent(file_name):
@@ -148,11 +146,13 @@ def getProfileInfos(doms_dict):
 		profileDict["scrobbling_since"] = getProfileSince(profileDom)
 		profileDict["last_tracks"] = getLastScrobs(profileDom, 3)
 		profileDict["background_image"] = getBackgroundImage(profileDom)
+		### !!!
 		profileDict["scrobbled_count"] = int(getHeaderStatus(profileDom)[0]) # Profile Header: Scrobbles
 		profileDict["artists_count"] = int(getHeaderStatus(profileDom)[1]) # Profile Header: Artist Count
 		profileDict["likes_count"] = int(getHeaderStatus(profileDom)[2]) # Profile Header: Loved Tracks
-		profileDict['artists_today'], profileDict['today_listening'] = getTodayListening(profileDict["username"])
-		profileDict['artist_count_alltime'] = getArtistAllTimeCount(profileDict["username"], profileDict['artists_today'], None) # Need: username, [artistsList]
+		### !!!
+		profileDict['today_artists'], profileDict['today_tracks'], profileDict['old_today_tracks'] = getTodayListening(profileDict["username"])
+		profileDict['artist_count_alltime'] = getArtistAllTimeCount(profileDict["username"], profileDict['today_tracks'], profileDict['old_today_tracks']) # username, today_tracks, old_today_tracks
 	
 	if all(key in doms_dict for key in ('following_dom', 'followers_dom')): # Ayrı bir post isteği gerekir.
 		followsDom = [doms_dict["following_dom"], doms_dict["followers_dom"]]
@@ -214,10 +214,10 @@ def getHeaderStatus(profile_dom):
 	headers = profile_dom.find_all("div", {"class": "header-metadata-display"})
 	for i in range(len(headers)):
 		headerStatus[i] = headers[i].text.strip()
-		headerStatus[i] = getRomoval(headerStatus[i],',', int) # {} içerisindeki {}'i kaldır ve {} olarak geri al.
+		headerStatus[i] = getRemoval(headerStatus[i],',', int) # {} içerisindeki {}'i kaldır ve {} olarak geri al.
 	return headerStatus
 
-def getRomoval(inside_obj, find_obj=' ', return_type=None):
+def getRemoval(inside_obj, find_obj=' ', return_type=None):
 	printRunningDef(currentframe())
 	if return_type == None:
 		return_type = type(inside_obj)
@@ -385,11 +385,20 @@ def getFollowDict(following_box, followers_box, followback_box):
 
 def getTodayListening(user_name):
 	printRunningDef(currentframe())
+	jsonDir = 'backups/json'
+	jsonName = f'{user_name}-today-{appSession}.json'
+	jsonPath = f'{jsonDir}/{jsonName}'
 	today = date.today()
 	today = today.strftime("%Y-%m-%d")
 	pageNo = 1
 	todayTracks = {}
-	todayArtist = []
+	todayArtists = []
+
+	if os.path.exists(jsonPath): # Önceden bir today jsonu varsa
+		oldTodayTracks = getJsonData(jsonPath) # Eskisini kaydet
+	else:
+		oldTodayTracks = None
+
 	while True:
 		todayListeningUrl = f'https://www.last.fm/user/{user_name}/library/artists?from={today}&rangetype=1day&page={pageNo}'
 		todayListeningDom = getDom(getResponse(todayListeningUrl))
@@ -398,46 +407,64 @@ def getTodayListening(user_name):
 			for i in todayListeningDomTracks:
 				artistName = i.find("td","chartlist-name").text.strip()
 				artistCount = i.find("span","chartlist-count-bar-value").text.strip()
-				todayArtist.append(artistName)
-				todayTracks[artistName] = artistCount[:artistCount.rfind(' ')] # Boşluğun hemen öncesine kadar al. (123 scrobbles)
+				todayArtists.append(artistName)
+				todayTracks[artistName] = getRemoval(artistCount[:artistCount.rfind(' ')], ',', int) # Boşluğun hemen öncesine kadar al. (123 scrobbles)
 		except:
 			pass # Bir hata gerçekleşirse dict boş gönderilir.
 
 		if todayListeningDom.find("li", {"class": "pagination-next"}):
 			pageNo += 1
 		else:
-			return todayArtist, todayTracks
+			doDictJsonSave(jsonName, todayTracks) # Json save
+			return todayArtists, todayTracks, oldTodayTracks
 
-def getArtistAllTimeCount(user_name, artists_box, process_loop=None): # total contribution to artists listened to today
+def getArtistTodayCount():
+	pass
+
+def getArtistAllCount(user_name, artist_names):
+	artistScrobbs = {}
+	for artistName in artist_names:
+		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artistName}?date_preset=ALL'
+		artistCountDom = getDom(getResponse(artistCountUrl))
+		artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
+		artistScrobbs[artistName] = artistScrobbleCount # library_header_title, metadata_display
+	return artistScrobbs
+
+def getJsonData(json_path):
+		with open(json_path) as jsonFile:
+			return json.load(jsonFile)
+
+def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total contribution to artists listened to today
 	printRunningDef(currentframe())
 	jsonDir = 'backups/json'
-	jsonName = f'{user_name}-alltime-{appSession}.json'
+	jsonName = f'{user_name}-alltime.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
 
 	if not os.path.exists(jsonPath): # ico not exist
-		if isinstance(artists_box, dict): # Sözlük gönderildiyse keys ile işlem yapılır
-			artists_box = artists_box.keys()
-		
-		artistCount = {}
-		for artistName in artists_box:
-			if process_loop != None:
-				if process_loop != 0:
-					process_loop -= 1
-				else:
-					break
-
-			artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artistName}?date_preset=ALL'
-			artistCountDom = getDom(getResponse(artistCountUrl))
-			artistScrobbles = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
-			artistCount[artistName] = artistScrobbles # library_header_title, metadata_display
-
-		doDictJsonSave(jsonName, artistCount)
-		print(f'{jsonPath} kaydedildi.')
+		artistNames = artists_box.keys()
+		alltimeJson = getArtistAllCount(user_name, artistNames)
 	else:
-		with open(jsonPath) as jsonFile:
-			artistCount = json.load(jsonFile)
-		print(f'{jsonPath} kullanılıyor.')
-	return artistCount	
+		alltimeJson = getJsonData(jsonPath)
+		for artistName, artistCount in artists_box.items():
+			if old_artists_box == None:
+				oldCount = artists_box[artistName]
+			else:
+				if artistName in old_artists_box: # Sanatçı önceden dinlendiyse
+					oldCount = old_artists_box[artistName] # Sanatçının önceden kayıtlı olan dinlenme sayısı
+				else: # Yeni bir sanatçı dinlendiyse
+					oldCount = artists_box[artistName] # Sanatçının önceden kayıtlı olan dinlenme sayısı
+
+			if artistName in alltimeJson: # Artist kullanıcının tüm zamanlarına önceden kaydedilmişse
+				alltimeJson[artistName] += (artistCount-oldCount)
+			else: # Önceden kayıt edilmemiş kişiler.
+				alltimeJson[artistName] = getArtistAllCount(user_name, [artistName])[artistName]
+
+	doDictJsonSave(jsonName, alltimeJson)
+	return alltimeJson	
+	
+def getDictDiff(dict_x, dict_y): # Not yet
+	dict_diff = None
+	return dict_diff
 
 def getDictKeyNo(key, d): # key, dict
 	dictKeys = d.keys()
@@ -447,13 +474,14 @@ def getDictKeyNo(key, d): # key, dict
 
 ## -- PRINT DEFS --
 def printRunningDef(def_info):
-	time.sleep(0.03)
-	currentLine = def_info.f_back.f_lineno
-	defName = def_info.f_code.co_name
-	with open('main.py', 'r') as f:
-		mainLinesLength = len(str(len(f.readlines())))
-		currentLineLength = len(str(currentLine))
-		print(f"Process: [{'0'*(mainLinesLength-currentLineLength)+str(currentLine) if currentLineLength < mainLinesLength else currentLine}]:{defName}")
+	if False:
+		time.sleep(0.03)
+		currentLine = def_info.f_back.f_lineno
+		defName = def_info.f_code.co_name
+		with open('main.py', 'r') as f:
+			mainLinesLength = len(str(len(f.readlines())))
+			currentLineLength = len(str(currentLine))
+			print(f"Process: [{'0'*(mainLinesLength-currentLineLength)+str(currentLine) if currentLineLength < mainLinesLength else currentLine}]:{defName}")
 
 def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
@@ -462,7 +490,7 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 	upi_sc = upi_dict["scrobbled_count"]
 	upi_ac = upi_dict["artists_count"]
 	upi_lc = upi_dict["likes_count"]
-	upi_tl = upi_dict['today_listening']
+	upi_tt = upi_dict['today_tracks']
 	upi_bi = upi_dict["background_image"]
 	upi_ua = upi_dict["user_avatar"]
 	upi_ss = upi_dict["scrobbling_since"]
@@ -481,7 +509,7 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 		upi_nofbc = upi_dict["follows"]["no_fb_count"]
 		printFollowStat(upi_fg, upi_fs , upi_fb, upi_fgc, upi_fsc, upi_fbc, upi_nofbc)
 	printRecentTracks(upi_lts, upi_sc) # Last Tracks Prints
-	printTodayAllTime(upi_acot, upi_tl) # Total, Today Prints
+	printTodayAllTime(upi_acot, upi_tt) # Total, Today Prints
 	# Adresses
 	print(f'\nProfile: {upi_dn} (@{upi_un})')
 	print(f'Scrobbling Since: {upi_ss}')
