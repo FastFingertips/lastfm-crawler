@@ -6,10 +6,12 @@ from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
+from inspect import currentframe #: PMI
 
 defStatus = True
 
 ## -- DO DEFS --
+
 def getLastLine(file_name):
 	with open(file_name, 'r') as f:
 		return f.readlines()[-1][:14]
@@ -25,9 +27,7 @@ def debugLog(return_bool = False):
 		return getLastLine(debugFile)
 
 def doRunLastNotifier(current_profile_data):
-	if defStatus:
-		print(f'Process: {doRunLastNotifier.__name__}')
-
+	printRunningDef(currentframe())
 	# Get notifier data
 	if current_profile_data["last_tracks"] != None:
 		username = current_profile_data["username"]
@@ -44,9 +44,7 @@ def doRunLastNotifier(current_profile_data):
 	f'Current Scrobbles: {current_profile_data["scrobbled_count"]}{msgLastTrack}')
 
 def doCheckChange(current_profile_data, user_name):
-	if defStatus:
-		print(f'Process: {doCheckChange.__name__}')
-	
+	printRunningDef(currentframe())
 	while True:	
 		newProfileData = getSearchUser(user_name, False) 	
 		if current_profile_data != newProfileData:
@@ -56,9 +54,7 @@ def doCheckChange(current_profile_data, user_name):
 			printStatus(current_profile_data, True)
 
 def doRunNotifier(title_msg=' ', content_msg=' '):
-	if defStatus:
-		print(f'Process: {doRunNotifier.__name__}')
-
+	printRunningDef(currentframe())
 	icoDomain = 'https://www.last.fm'
 	imgDir = 'images/media'
 	imgName = 'lastfm.ico'
@@ -72,9 +68,7 @@ def doRunNotifier(title_msg=' ', content_msg=' '):
 	notifier.show_toast(title_msg, content_msg, imgPath) # title="Notification", msg="Here comes the message", icon_path=None, duration=5, threaded=False
 
 def doDownloadImage(img_name, img_url, img_dir=None, open_mode='wb'): # doDownloadImage('images/avatars', 'MyAvatar', 'AvatarUrl')
-	if defStatus:
-		print(f'Process: {doDownloadImage.__name__}')
-	
+	printRunningDef(currentframe())
 	if img_dir != None:
 		doDirCreate(img_dir)
 		img_name = f'{img_dir}/{img_name}'
@@ -89,9 +83,7 @@ def doDownloadImage(img_name, img_url, img_dir=None, open_mode='wb'): # doDownlo
 			file.write(imgContent)
 
 def doDirCreate(dir_name):
-	if defStatus:
-		print(f'Process: {doDirCreate.__name__}')
-
+	printRunningDef(currentframe())
 	dirList = dir_name.split('/')
 	for d in dirList:
 		try:
@@ -122,10 +114,7 @@ def doDictJsonSave(json_name, save_dict, json_dir='backups/json', open_mode='w')
 ## -- GET DEFS -- (RETURN)
 
 def getSearchUser(user_name, status_print=True, refresh_bool=True, follow_print=True):
-	
-	if defStatus:
-		print(f'Process: {getSearchUser.__name__}')
-
+	printRunningDef(currentframe())
 	if user_name:
 		urlDict, domsDict, responsesDict = {},{},{}
 		urlDict['user_url'] = "https://www.last.fm/user/" + user_name
@@ -149,9 +138,7 @@ def getSearchUser(user_name, status_print=True, refresh_bool=True, follow_print=
 		return userProfileInfos
 
 def getProfileInfos(doms_dict):
-	if defStatus:
-		print(f'Process: {getProfileInfos.__name__}')
-
+	printRunningDef(currentframe())
 	profileDict = {}
 	if "profile_dom" in doms_dict:
 		profileDom = doms_dict["profile_dom"]
@@ -181,21 +168,15 @@ def getProfileInfos(doms_dict):
 	return profileDict
 
 def getResponse(response_url):
-	if defStatus:
-		print(f'Process: {getResponse.__name__}')
-
+	printRunningDef(currentframe())
 	return requests.get(response_url)
 
 def getDom(response_code):
-	if defStatus:
-		print(f'Process: {getDom.__name__}')
-
+	printRunningDef(currentframe())
 	return BeautifulSoup(response_code.content, 'html.parser')
 
 def getFaviconUrl(site_url): # Belirtilen sayfadaki iconu çeker.
-	if defStatus:
-		print(f'Process: {getFaviconUrl.__name__}')
-
+	printRunningDef(currentframe())
 	while True:
 		iconResponse = getResponse(site_url)
 		if iconResponse.status_code in range(200,299):
@@ -204,9 +185,7 @@ def getFaviconUrl(site_url): # Belirtilen sayfadaki iconu çeker.
 			return iconUrl # return '/static/images/favicon.702b239b6194.ico'
 
 def getBackgroundImage(profile_dom):
-	if defStatus:
-		print(f'Process: {getBackgroundImage.__name__}')
-
+	printRunningDef(currentframe())
 	backgroundPath = 'images/background'
 	backgroundName = f'{getUsername(profile_dom)}-bg-{getCurrentSession()}'
 	try:
@@ -217,9 +196,7 @@ def getBackgroundImage(profile_dom):
 	return backgroundImageUrl # Replaced: background-image: url();
 
 def getUserAvatar(profile_dom):
-	if defStatus:
-		print(f'Process: {getUserAvatar.__name__}')
-
+	printRunningDef(currentframe())
 	avatarPath = 'images/avatar'
 	avatarName =  f'{getUsername(profile_dom)}-av-{getCurrentSession()}'
 	defaultAvatarId = "818148bf682d429dc215c1705eb27b98"
@@ -232,9 +209,7 @@ def getUserAvatar(profile_dom):
 	return profileAvatarUrl 
 
 def getHeaderStatus(profile_dom):
-	if defStatus:
-		print(f'Process: {getHeaderStatus.__name__}')
-
+	printRunningDef(currentframe())
 	headerStatus = [0, 0, 0]
 	headers = profile_dom.find_all("div", {"class": "header-metadata-display"})
 	for i in range(len(headers)):
@@ -243,9 +218,7 @@ def getHeaderStatus(profile_dom):
 	return headerStatus
 
 def getRomoval(inside_obj, find_obj=' ', return_type=None):
-	if defStatus:
-		print(f'Process: {getRomoval.__name__}')
-
+	printRunningDef(currentframe())
 	if return_type == None:
 		return_type = type(inside_obj)
     
@@ -267,23 +240,17 @@ def getRomoval(inside_obj, find_obj=' ', return_type=None):
 	return inside_obj
 
 def getUsername(profile_dom):
-	if defStatus:
-		print(f'Process: {getUsername.__name__}')
-
+	printRunningDef(currentframe())
 	profileUserName = profile_dom.find("h1", {"class":"header-title"})
 	return profileUserName.text.strip()
 
 def getDisplayName(profile_dom):
-	if defStatus:
-		print(f'Process: {getDisplayName.__name__}')
-	
+	printRunningDef(currentframe())
 	profileDisplayName = profile_dom.find("span", {"class":"header-title-display-name"})
 	return profileDisplayName.text.strip()
 
 def getCurrentSession(get_length=None):
-	if defStatus:
-		print(f'Process: {getCurrentSession.__name__}')
-	
+	printRunningDef(currentframe())
 	'''
 		get_length 14 = %Y%m%d%H%M%S
 		get_length 12 = %Y%m%d%H%M
@@ -300,9 +267,7 @@ def getCurrentSession(get_length=None):
 	return session
 
 def getUserFollowingCount(following_dom):
-	if defStatus:
-		print(f'Process: {getUserFollowingCount.__name__}')
-
+	printRunningDef(currentframe())
 	while True:
 		try:
 			topHeader = following_dom.find("h1", {"class":"content-top-header"}).text # Path
@@ -316,9 +281,7 @@ def getUserFollowingCount(following_dom):
 			continue	
 
 def getUserFollowersCount(followers_dom):
-	if defStatus:
-		print(f'Process: {getUserFollowersCount.__name__}')
-	
+	printRunningDef(currentframe())
 	while True:
 		try:
 			topHeader = followers_dom.find("h1", {"class":"content-top-header"}).text # Path
@@ -332,9 +295,7 @@ def getUserFollowersCount(followers_dom):
 			continue
 
 def getUserFollowing(following_dom):
-	if defStatus:
-		print(f'Process: {getUserFollowing.__name__}')
-
+	printRunningDef(currentframe())
 	followingDict = {}
 	while True:
 		following = following_dom.find_all(attrs={"class": "user-list-name"})
@@ -349,9 +310,7 @@ def getUserFollowing(following_dom):
 			return followingDict
 	
 def getUserFollowers(followers_dom):
-	if defStatus:
-		print(f'Process: {getUserFollowers.__name__}')
-
+	printRunningDef(currentframe())
 	followersDict = {}
 	while True:
 		followers = followers_dom.find_all(attrs={"class": "user-list-name"})
@@ -366,9 +325,7 @@ def getUserFollowers(followers_dom):
 			return followersDict
 
 def getUserGT(following_box, followers_box):
-	if defStatus:
-		print(f'Process: {getUserGT.__name__}')
-
+	printRunningDef(currentframe())
 	userGt = {}
 	for userName in following_box:
 		if userName in followers_box:
@@ -378,16 +335,12 @@ def getUserGT(following_box, followers_box):
 	return userGt
 
 def getProfileSince(profile_dom):
-	if defStatus:
-		print(f'Process: {getProfileSince.__name__}')
-
+	printRunningDef(currentframe())
 	profileSince = profile_dom.find("span", {"class":"header-scrobble-since"})
 	return profileSince.text.partition("• scrobbling since")[2].strip() # Sonrasını al
 
 def getLastScrobs(profile_dom, get_count):
-	if defStatus:
-		print(f'Process: {getLastScrobs.__name__}')
-
+	printRunningDef(currentframe())
 	lastTracks = {}
 	for x in range(get_count): # X kadar al.
 		try:
@@ -402,15 +355,11 @@ def getLastScrobs(profile_dom, get_count):
 	return lastTracks
 
 def getDictValueCount(dicti, key):
-	if defStatus:
-		print(f'Process: {getDictValueCount.__name__}')
-
+	printRunningDef(currentframe())
 	return sum(key for _ in dicti.values() if _)
 
 def getFollowDict(following_box, followers_box, followback_box):
-	if defStatus:
-		print(f'Process: {getFollowDict.__name__}')
-
+	printRunningDef(currentframe())
 	f = {}
 	for username in following_box:
 		f[username] = {}
@@ -435,9 +384,7 @@ def getFollowDict(following_box, followers_box, followback_box):
 	return f
 
 def getTodayListening(user_name):
-	if defStatus:
-		print(f'Process: {getTodayListening.__name__}')
-
+	printRunningDef(currentframe())
 	today = date.today()
 	today = today.strftime("%Y-%m-%d")
 	pageNo = 1
@@ -462,9 +409,7 @@ def getTodayListening(user_name):
 			return todayArtist, todayTracks
 
 def getArtistAllTimeCount(user_name, artists_box, process_loop=None): # total contribution to artists listened to today
-	if defStatus:
-		print(f'Process: {getArtistAllTimeCount.__name__}')
-
+	printRunningDef(currentframe())
 	jsonDir = 'backups/json'
 	jsonName = f'{user_name}-alltime-{appSession}.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
@@ -495,17 +440,17 @@ def getArtistAllTimeCount(user_name, artists_box, process_loop=None): # total co
 	return artistCount	
 
 def getDictKeyNo(key, d): # key, dict
-	if defStatus:
-		print(f'Process: {getDictKeyNo.__name__}')
-
+	printRunningDef(currentframe())
 	dictKeys = d.keys()
 	dictKeysList = list(dictKeys)
 	keyIndexNo = dictKeysList.index(key) + 1
 	return keyIndexNo
 
 ## -- PRINT DEFS --
-def printDefStatus():
-	pass # Not Yet.
+def printRunningDef(def_info):
+	currentLine = def_info.f_back.f_lineno
+	defName = def_info.f_code.co_name
+	print(f"Process: [ {currentLine} {' ' if len(str(currentLine)) < 3 else ''}]:{defName}")
 
 def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
