@@ -12,7 +12,7 @@ defStatus = True
 
 ## -- DO DEFS --
 
-def getLastLine(file_name):
+def getLastLineContent(file_name):
 	with open(file_name, 'r') as f:
 		return f.readlines()[-1][:14]
 
@@ -24,7 +24,7 @@ def debugLog(return_bool = False):
 						datefmt = '%Y%m%d%H%M%S',
 						level = logging.DEBUG)
 	if return_bool:
-		return getLastLine(debugFile)
+		return getLastLineContent(debugFile)
 
 def doRunLastNotifier(current_profile_data):
 	printRunningDef(currentframe())
@@ -432,15 +432,14 @@ def getArtistAllTimeCount(user_name, artists_box, process_loop=None): # total co
 			artistCount[artistName] = artistScrobbles # library_header_title, metadata_display
 
 		doDictJsonSave(jsonName, artistCount)
-		print('new')
+		print(f'{jsonPath} kaydedildi.')
 	else:
 		with open(jsonPath) as jsonFile:
 			artistCount = json.load(jsonFile)
-		print('old')
+		print(f'{jsonPath} kullanılıyor.')
 	return artistCount	
 
 def getDictKeyNo(key, d): # key, dict
-	printRunningDef(currentframe())
 	dictKeys = d.keys()
 	dictKeysList = list(dictKeys)
 	keyIndexNo = dictKeysList.index(key) + 1
@@ -448,9 +447,13 @@ def getDictKeyNo(key, d): # key, dict
 
 ## -- PRINT DEFS --
 def printRunningDef(def_info):
+	time.sleep(0.03)
 	currentLine = def_info.f_back.f_lineno
 	defName = def_info.f_code.co_name
-	print(f"Process: [ {currentLine} {' ' if len(str(currentLine)) < 3 else ''}]:{defName}")
+	with open('main.py', 'r') as f:
+		mainLinesLength = len(str(len(f.readlines())))
+		currentLineLength = len(str(currentLine))
+		print(f"Process: [{'0'*(mainLinesLength-currentLineLength)+str(currentLine) if currentLineLength < mainLinesLength else currentLine}]:{defName}")
 
 def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 	print(f'\n*** {time.strftime("%H:%M:%S")} ***')
@@ -556,4 +559,3 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 
 appSession = debugLog(True)
 getSearchUser(input('Username: @'))
-
