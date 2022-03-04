@@ -8,11 +8,37 @@ from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
 
-## -- DO DEFS --
 
-def getLastLineContent(file_name):
-	with open(file_name, 'r') as f:
-		return f.readlines()[-1][:14]
+
+## -- DO DEFS --
+def doSyncControl(user_name, method, json_file=None):
+	date_time = date.today().strftime("%Y-%m-%d")
+	if json_file == None:
+		json_file = f'backups/json/{user_name}-alltime.json'
+
+	jsonContent = getJsonData(json_file) # Dict
+	for artistName, artistCount in jsonContent.items():
+		artistScrobbleCount = getArtistScrobbleCount(user_name, artistName, date_time, method)
+		print(f'{artistName} -> {artistCount}:{artistScrobbleCount} {artistCount==artistScrobbleCount}')
+		if jsonContent[artistName] != artistScrobbleCount:
+			return False, jsonContent.keys()
+	return True, None
+
+def doJsonUpdate(json_path, new_data):
+	with open(json_path, 'w') as json_file:
+		json.dump(new_data, json_file)
+
+def alltimeJsonSync(user_name, artist_names):
+	jsonPath = f'backups/json/{user_name}-alltime.json'
+	gettingMethod = 'all'
+	syncDiff, syncArtistsNames = doSyncControl(user_name, gettingMethod)
+	print(syncDiff)
+	if not syncDiff:
+		newData = {}
+		for artistName in artist_names:
+			newData[artistName] = getArtistAllScrobbleCount(user_name, artistName)
+			print(newData[artistName])
+		doJsonUpdate(jsonPath, newData)
 
 def debugLog(return_bool = False):
 	debugFile = 'debug.log'
@@ -359,7 +385,6 @@ def getDictValueCount(dicti, key):
 	return sum(key for _ in dicti.values() if _)
 
 def getFollowDict(following_box, followers_box, followback_box):
-	printRunningDef(currentframe())
 	f = {}
 	for username in following_box:
 		f[username] = {}
@@ -418,9 +443,6 @@ def getTodayListening(user_name):
 			doDictJsonSave(jsonName, todayTracks) # Json save
 			return todayArtists, todayTracks, oldTodayTracks
 
-def getArtistTodayCount():
-	pass
-
 def getArtistAllCount(user_name, artist_names):
 	artistScrobbs = {}
 	for artistName in artist_names:
@@ -436,9 +458,14 @@ def getJsonData(json_path):
 
 def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total contribution to artists listened to today
 	printRunningDef(currentframe())
+	
 	jsonDir = 'backups/json'
 	jsonName = f'{user_name}-alltime.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
+	if old_artists_box == None:
+		syncBool, syncArtistNames = doSyncControl(user_name, 'all')
+		if not syncBool:
+			alltimeJsonSync(user_name, syncArtistNames)
 
 	if not os.path.exists(jsonPath): # ico not exist
 		artistNames = artists_box.keys()
@@ -461,7 +488,7 @@ def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total cont
 
 	doDictJsonSave(jsonName, alltimeJson)
 	return alltimeJson	
-	
+
 def getDictDiff(dict_x, dict_y): # Not yet
 	dict_diff = None
 	return dict_diff
@@ -472,9 +499,33 @@ def getDictKeyNo(key, d): # key, dict
 	keyIndexNo = dictKeysList.index(key) + 1
 	return keyIndexNo
 
+def getArtistScrobbleCount(user_name, artist_name, date_time, method):
+	if method == 'today':
+		return getArtistTodayScrobbleCount(user_name, artist_name, date_time)
+	elif method == 'all':
+		return getArtistAllScrobbleCount(user_name, artist_name)
+
+def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
+		artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/{artist_name}?from={from_set}&rangetype=1day'
+		artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
+		artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
+		artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
+		return artistTodayScrobbleCount
+	
+def getArtistAllScrobbleCount(user_name, artist_name):
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artist_name}?date_preset=ALL'
+	artistCountDom = getDom(getResponse(artistCountUrl))
+	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
+	return artistScrobbleCount # library_header_title, metadata_display
+
+def getLastLineContent(file_name):
+	with open(file_name, 'r') as f:
+		return f.readlines()[-1][:14]
+
+
 ## -- PRINT DEFS --
 def printRunningDef(def_info):
-	if False:
+	if True:
 		time.sleep(0.03)
 		currentLine = def_info.f_back.f_lineno
 		defName = def_info.f_code.co_name
@@ -584,6 +635,7 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 				print(f"FG:[{f[user]['following']}], FR:[{f[user]['follower']}], FB:[{f[user]['user_fb']}] | {f[user]['link']}, @{user}")
 	elif fgc != 0:
 		print(f'{fbc} users you follow are following you.')
+
 
 appSession = debugLog(True)
 getSearchUser(input('Username: @'))
