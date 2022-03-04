@@ -11,6 +11,16 @@ from inspect import currentframe #: PMI
 
 
 ## -- DO DEFS --
+def debugLog(return_bool = False):
+	debugFile = 'debug.log'
+	logging.basicConfig(filename = debugFile,
+						encoding = 'utf-8',
+						format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+						datefmt = '%Y%m%d%H%M%S',
+						level = logging.DEBUG)
+	if return_bool:
+		return getLastLineContent(debugFile)
+
 def doSyncControl(user_name, method, json_file=None):
 	date_time = date.today().strftime("%Y-%m-%d")
 	if json_file == None:
@@ -28,7 +38,7 @@ def doJsonUpdate(json_path, new_data):
 	with open(json_path, 'w') as json_file:
 		json.dump(new_data, json_file)
 
-def alltimeJsonSync(user_name, artist_names):
+def doAlltimeJsonSync(user_name, artist_names):
 	jsonPath = f'backups/json/{user_name}-alltime.json'
 	gettingMethod = 'all'
 	syncDiff, syncArtistsNames = doSyncControl(user_name, gettingMethod)
@@ -39,16 +49,6 @@ def alltimeJsonSync(user_name, artist_names):
 			newData[artistName] = getArtistAllScrobbleCount(user_name, artistName)
 			print(newData[artistName])
 		doJsonUpdate(jsonPath, newData)
-
-def debugLog(return_bool = False):
-	debugFile = 'debug.log'
-	logging.basicConfig(filename = debugFile,
-						encoding = 'utf-8',
-						format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-						datefmt = '%Y%m%d%H%M%S',
-						level = logging.DEBUG)
-	if return_bool:
-		return getLastLineContent(debugFile)
 
 def doRunLastNotifier(current_profile_data):
 	printRunningDef(currentframe())
@@ -70,12 +70,16 @@ def doRunLastNotifier(current_profile_data):
 def doCheckChange(current_profile_data, user_name):
 	printRunningDef(currentframe())
 	while True:	
+		print('Process: Syncing profile..')
 		newProfileData = getSearchUser(user_name, False) 	
 		if current_profile_data != newProfileData:
+			print('Process: New profile information has been obtained.')
 			if newProfileData["scrobbled_count"] != current_profile_data["scrobbled_count"]:
 				doRunLastNotifier(newProfileData)
+			printStatus(newProfileData, True)
 			current_profile_data = newProfileData
-			printStatus(current_profile_data, True)
+		else:
+			print('Process: No changes to profile information.')
 
 def doRunNotifier(title_msg=' ', content_msg=' '):
 	printRunningDef(currentframe())
@@ -462,10 +466,12 @@ def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total cont
 	jsonDir = 'backups/json'
 	jsonName = f'{user_name}-alltime.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
+
 	if old_artists_box == None:
-		syncBool, syncArtistNames = doSyncControl(user_name, 'all')
-		if not syncBool:
-			alltimeJsonSync(user_name, syncArtistNames)
+		if os.path.exists(jsonPath):
+			syncBool, syncArtistNames = doSyncControl(user_name, 'all')
+			if not syncBool:
+				doAlltimeJsonSync(user_name, syncArtistNames)
 
 	if not os.path.exists(jsonPath): # ico not exist
 		artistNames = artists_box.keys()
