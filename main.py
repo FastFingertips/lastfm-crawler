@@ -8,7 +8,8 @@ from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
 
-
+def ping(host):
+	os.system("cls && ping -n 1 " + host)
 
 ## -- DO DEFS --
 def debugLog(return_bool = False):
@@ -47,7 +48,6 @@ def doAlltimeJsonSync(user_name, artist_names):
 		newData = {}
 		for artistName in artist_names:
 			newData[artistName] = getArtistAllScrobbleCount(user_name, artistName)
-			print(newData[artistName])
 		doJsonUpdate(jsonPath, newData)
 
 def doRunLastNotifier(current_profile_data):
@@ -146,10 +146,8 @@ def getSearchUser(user_name, status_print=True, refresh_bool=True, follow_print=
 	if user_name:
 		urlDict, domsDict, responsesDict = {},{},{}
 		urlDict['user_url'] = "https://www.last.fm/user/" + user_name
-		profileResponseCode = getResponse(urlDict['user_url'])
 		# Get profile page
-		if profileResponseCode.status_code in range(200,299):
-			responsesDict["profile_dom"] = profileResponseCode
+		responsesDict["profile_dom"] = getResponse(urlDict['user_url'])
 		# Get follow pages
 		if follow_print:
 			urlDict['fallowing_url'] = urlDict['user_url']+'/following'
@@ -198,8 +196,14 @@ def getProfileInfos(doms_dict):
 	return profileDict
 
 def getResponse(response_url):
-	printRunningDef(currentframe())
-	return requests.get(response_url)
+	while True:
+		printRunningDef(currentframe())
+		response = requests.get(response_url)
+		responseCode = response.status_code
+		print(f'{response_url[19:]} : {responseCode}')
+		if responseCode in range(200,299):
+			return response
+		print(f'Trying to reconnect to {response_url[19:]} address..')
 
 def getDom(response_code):
 	printRunningDef(currentframe())
@@ -450,7 +454,7 @@ def getTodayListening(user_name):
 def getArtistAllCount(user_name, artist_names):
 	artistScrobbs = {}
 	for artistName in artist_names:
-		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artistName}?date_preset=ALL'
+		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artistName}' # Artist alltime details
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 		artistScrobbs[artistName] = artistScrobbleCount # library_header_title, metadata_display
@@ -512,22 +516,22 @@ def getArtistScrobbleCount(user_name, artist_name, date_time, method):
 		return getArtistAllScrobbleCount(user_name, artist_name)
 
 def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
-		artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/{artist_name}?from={from_set}&rangetype=1day'
-		artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
-		artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
-		artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
-		return artistTodayScrobbleCount
+	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/{artist_name}?from={from_set}&rangetype=1day'
+	artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
+	artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
+	artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
+	return artistTodayScrobbleCount
 	
 def getArtistAllScrobbleCount(user_name, artist_name):
-	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artist_name}?date_preset=ALL'
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artist_name}'
 	artistCountDom = getDom(getResponse(artistCountUrl))
 	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
+	print(artist_name, artistScrobbleCount)
 	return artistScrobbleCount # library_header_title, metadata_display
 
 def getLastLineContent(file_name):
 	with open(file_name, 'r') as f:
 		return f.readlines()[-1][:14]
-
 
 ## -- PRINT DEFS --
 def printRunningDef(def_info):
@@ -642,6 +646,6 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 	elif fgc != 0:
 		print(f'{fbc} users you follow are following you.')
 
-
+ping("www.last.fm")
 appSession = debugLog(True)
 getSearchUser(input('Username: @'))
