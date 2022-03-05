@@ -646,6 +646,8 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
 	elif fgc != 0:
 		print(f'{fbc} users you follow are following you.')
 
-ping("www.last.fm")
-appSession = debugLog(True)
-getSearchUser(input('Username: @'))
+if __name__ == '__main__':
+	appSession = debugLog(True)
+	# ping("www.last.fm")
+	getSearchUser(input('Username: @'))
+
