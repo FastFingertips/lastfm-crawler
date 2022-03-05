@@ -57,7 +57,7 @@ def doRunLastNotifier(current_profile_data):
 		username = current_profile_data["username"]
 		song_name = current_profile_data["last_tracks"][0][0]
 		artist_name = current_profile_data["last_tracks"][0][1]
-		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/{artist_name}?date_preset=ALL'
+		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/+noredirect/{artist_name}?date_preset=ALL'
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistCount = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
 		msgLastTrack = f'\nLast track: {song_name} | {artist_name} ({artistCount})'
@@ -454,7 +454,7 @@ def getTodayListening(user_name):
 def getArtistAllCount(user_name, artist_names):
 	artistScrobbs = {}
 	for artistName in artist_names:
-		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artistName}' # Artist alltime details
+		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{artistName}' # Artist alltime details
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 		artistScrobbs[artistName] = artistScrobbleCount # library_header_title, metadata_display
@@ -468,7 +468,7 @@ def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total cont
 	printRunningDef(currentframe())
 	
 	jsonDir = 'backups/json'
-	jsonName = f'{user_name}-alltime.json'
+	jsonName = f'{user_name}-alltime-{appSession}.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
 
 	if old_artists_box == None:
@@ -516,14 +516,14 @@ def getArtistScrobbleCount(user_name, artist_name, date_time, method):
 		return getArtistAllScrobbleCount(user_name, artist_name)
 
 def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
-	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/{artist_name}?from={from_set}&rangetype=1day'
+	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/+noredirect/{artist_name}?from={from_set}&rangetype=1day'
 	artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
 	artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
 	artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
 	return artistTodayScrobbleCount
 	
 def getArtistAllScrobbleCount(user_name, artist_name):
-	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/{artist_name}'
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{artist_name}'
 	artistCountDom = getDom(getResponse(artistCountUrl))
 	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 	print(artist_name, artistScrobbleCount)
