@@ -200,7 +200,7 @@ def getResponse(response_url):
 		printRunningDef(currentframe())
 		response = requests.get(response_url)
 		responseCode = response.status_code
-		print(f'{response_url[19:]} : {responseCode}')
+		print(f'{response_url[:]} : {responseCode}')
 		if responseCode in range(200,299):
 			return response
 		print(f'Trying to reconnect to {response_url[19:]} address..')
