@@ -425,7 +425,6 @@ def getTodayListening(user_name):
 	today = today.strftime("%Y-%m-%d")
 	pageNo = 1
 	todayTracks = {}
-	todayArtists = []
 
 	if os.path.exists(jsonPath): # Önceden bir today jsonu varsa
 		oldTodayTracks = getJsonData(jsonPath) # Eskisini kaydet
@@ -440,7 +439,6 @@ def getTodayListening(user_name):
 			for i in todayListeningDomTracks:
 				artistName = i.find("td","chartlist-name").text.strip()
 				artistCount = i.find("span","chartlist-count-bar-value").text.strip()
-				todayArtists.append(artistName)
 				todayTracks[artistName] = getRemoval(artistCount[:artistCount.rfind(' ')], ',', int) # Boşluğun hemen öncesine kadar al. (123 scrobbles)
 		except:
 			pass # Bir hata gerçekleşirse dict boş gönderilir.
@@ -449,6 +447,7 @@ def getTodayListening(user_name):
 			pageNo += 1
 		else:
 			doDictJsonSave(jsonName, todayTracks) # Json save
+			todayArtists = list(todayTracks.keys()) # Bugün dinlenen sanatçıların isimleri
 			return todayArtists, todayTracks, oldTodayTracks
 
 def getArtistAllCount(user_name, artist_names):
@@ -466,7 +465,6 @@ def getJsonData(json_path):
 
 def getArtistAllTimeCount(user_name, artists_box, old_artists_box): # total contribution to artists listened to today
 	printRunningDef(currentframe())
-	
 	jsonDir = 'backups/json'
 	jsonName = f'{user_name}-alltime-{appSession}.json'
 	jsonPath = f'{jsonDir}/{jsonName}'
