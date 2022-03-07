@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
+import urllib.parse
 
 def ping(host):
 	os.system("cls && ping -n 1 " + host)
@@ -57,7 +58,7 @@ def doRunLastNotifier(current_profile_data):
 		username = current_profile_data["username"]
 		song_name = current_profile_data["last_tracks"][0][0]
 		artist_name = current_profile_data["last_tracks"][0][1]
-		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/+noredirect/{artist_name}?date_preset=ALL'
+		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/+noredirect/{urllib.parse.quote(artist_name)}?date_preset=ALL'
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistCount = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
 		msgLastTrack = f'\nLast track: {song_name} | {artist_name} ({artistCount})'
@@ -198,16 +199,37 @@ def getProfileInfos(doms_dict):
 def getResponse(response_url):
 	while True:
 		printRunningDef(currentframe())
+
+		# urlPart1, urlPart2, urlPart3 = response_url.partition("+noredirect/")
+		
+		# if "/" in urlPart3:
+		# 	urlPart3 = urlPart3.replace('/','%2F')
+
+		# response_url = f'{urlPart1}{urlPart2}{urlPart3}'	
 		response = requests.get(response_url)
+
+
+
 		responseCode = response.status_code
-		print(f'{response_url[:]} : {responseCode}')
+
+		print(f'Request: {response_url[:]} : {responseCode}')
 		if responseCode in range(200,299):
+			if "https://www.last.fm/" in response_url:
+				pageContent = getDom(response)
+				ogUrl = pageContent.find("meta", property="og:url")['content']
+				print(f'responseUrl = ogUrl {response_url == ogUrl}')
+				if response_url != ogUrl:
+					print('Url değişimi algılangı istek düzeltiliyor..')
+					response_url = ogUrl
+					continue
 			return response
 		print(f'Trying to reconnect to {response_url[19:]} address..')
 
-def getDom(response_code):
-	printRunningDef(currentframe())
-	return BeautifulSoup(response_code.content, 'html.parser')
+def getDom(response):
+	while True:
+		printRunningDef(currentframe())
+		pageContent = BeautifulSoup(response.content, 'html.parser')
+		return pageContent
 
 def getFaviconUrl(site_url): # Belirtilen sayfadaki iconu çeker.
 	printRunningDef(currentframe())
@@ -453,7 +475,7 @@ def getTodayListening(user_name):
 def getArtistAllCount(user_name, artist_names):
 	artistScrobbs = {}
 	for artistName in artist_names:
-		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{artistName}' # Artist alltime details
+		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artistName)}' # Artist alltime details
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 		artistScrobbs[artistName] = artistScrobbleCount # library_header_title, metadata_display
@@ -514,14 +536,15 @@ def getArtistScrobbleCount(user_name, artist_name, date_time, method):
 		return getArtistAllScrobbleCount(user_name, artist_name)
 
 def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
-	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/+noredirect/{artist_name}?from={from_set}&rangetype=1day'
+	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}?from={from_set}&rangetype=1day'
 	artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
 	artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
 	artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
 	return artistTodayScrobbleCount
 	
 def getArtistAllScrobbleCount(user_name, artist_name):
-	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{artist_name}'
+
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}'
 	artistCountDom = getDom(getResponse(artistCountUrl))
 	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 	print(artist_name, artistScrobbleCount)
@@ -586,15 +609,16 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 		doCheckChange(upi_dict, upi_un)
 
 def printTodayAllTime(artists_alltime, artists_today):
-	print(f'\nYour total contribution to the artist today;')
-	for todayArtistName, todayArtistCount in artists_today.items():
-		todayArtistNo = getDictKeyNo(todayArtistName, artists_today) # belirtilen anahtarın sözlükte kaçıncı sırada olduğunu çek
-		try:
-			count_msg = f'{artists_alltime[todayArtistName]} (Today: {todayArtistCount})'
-		except:
-			count_msg = f'Today: {todayArtistCount}'
-		finally:
-			print(f'[{todayArtistNo}]: {todayArtistName} - {count_msg}')
+	if len(artists_today) > 0:
+		print(f'\nYour total contribution to the artist today;')
+		for todayArtistName, todayArtistCount in artists_today.items():
+			todayArtistNo = getDictKeyNo(todayArtistName, artists_today) # belirtilen anahtarın sözlükte kaçıncı sırada olduğunu çek
+			try:
+				count_msg = f'{artists_alltime[todayArtistName]} (Today: {todayArtistCount})'
+			except:
+				count_msg = f'Today: {todayArtistCount}'
+			finally:
+				print(f'[{todayArtistNo}]: {todayArtistName} - {count_msg}')
 
 def printTodayListening(tracks_today):
 	if bool(tracks_today): # Dict boş dönmezse
