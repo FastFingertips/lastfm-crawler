@@ -4,23 +4,26 @@ import json
 import logging
 from datetime import date, datetime
 import requests
+import urllib.parse
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
-import urllib.parse
 
+## SPECIAL
 def ping(host):
 	os.system("cls && ping -n 1 " + host)
 
-## -- DO DEFS --
-def debugLog(return_bool = False):
+def debugLog(def_return=False):
 	debugFile = 'debug.log'
-	logging.basicConfig(filename = debugFile,
-						encoding = 'utf-8',
-						format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-						datefmt = '%Y%m%d%H%M%S',
-						level = logging.DEBUG)
-	if return_bool:
+	logging.basicConfig(
+		filename = debugFile,
+		encoding = 'utf-8',
+		format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+		datefmt = '%Y%m%d%H%M%S',
+		level = logging.DEBUG)
+
+## -- DO DEFS --
+	if def_return:
 		return getLastLineContent(debugFile)
 
 def doSyncControl(user_name, method, json_file=None):
@@ -65,8 +68,9 @@ def doRunLastNotifier(current_profile_data):
 	else:
 		msgLastTrack = ''
 
-	doRunNotifier(f'Profile: {current_profile_data["display_name"]} (@{current_profile_data["username"]})',
-	f'Current Scrobbles: {current_profile_data["scrobbled_count"]}{msgLastTrack}')
+	doRunNotifier(
+		f'Profile: {current_profile_data["display_name"]} (@{current_profile_data["username"]})', # Title
+		f'Current Scrobbles: {current_profile_data["scrobbled_count"]}{msgLastTrack}') # Content
 
 def doCheckChange(current_profile_data, user_name):
 	printRunningDef(currentframe())
@@ -199,20 +203,14 @@ def getProfileInfos(doms_dict):
 def getResponse(response_url):
 	while True:
 		printRunningDef(currentframe())
-
 		# urlPart1, urlPart2, urlPart3 = response_url.partition("+noredirect/")
-		
 		# if "/" in urlPart3:
 		# 	urlPart3 = urlPart3.replace('/','%2F')
-
 		# response_url = f'{urlPart1}{urlPart2}{urlPart3}'	
 		response = requests.get(response_url)
-
-
-
 		responseCode = response.status_code
-
 		print(f'Request: {response_url[:]} : {responseCode}')
+
 		if responseCode in range(200,299):
 			if "https://www.last.fm/" in response_url:
 				pageContent = getDom(response)
@@ -274,7 +272,6 @@ def getHeaderStatus(profile_dom):
 	return headerStatus
 
 def getRemoval(inside_obj, find_obj=' ', return_type=None):
-	printRunningDef(currentframe())
 	if return_type == None:
 		return_type = type(inside_obj)
     
