@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
 
-## SPECIAL
+## -- SPECIAL DEFS --
 def ping(host):
 	os.system("cls && ping -n 1 " + host)
 
@@ -22,9 +22,10 @@ def debugLog(def_return=False):
 		datefmt = '%Y%m%d%H%M%S',
 		level = logging.DEBUG)
 
-## -- DO DEFS --
 	if def_return:
 		return getLastLineContent(debugFile)
+
+## -- DO DEFS --
 
 def doSyncControl(user_name, method, json_file=None):
 	date_time = date.today().strftime("%Y-%m-%d")
