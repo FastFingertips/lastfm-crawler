@@ -23,7 +23,7 @@ def debugLog(def_return=False):
 		level = logging.DEBUG)
 
 	if def_return:
-		return getLastLineContent(debugFile)
+		return getLastLineContent(debugFile,0,14)
 
 ## -- DO DEFS --
 
@@ -540,20 +540,20 @@ def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
 	artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
 	return artistTodayScrobbleCount
 	
-def getArtistAllScrobbleCount(user_name, artist_name):
-
-	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}'
-	artistCountDom = getDom(getResponse(artistCountUrl))
-	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
+def getArtistAllScrobbleCount(user_name, artist_name): # Belirtilen kullanıcının o sanatçıyı ne kadar dinlediği
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}' # Kullanıcıya ait sanatçı sayfası
+	artistCountDom = getDom(getResponse(artistCountUrl)) # Kullanıcıya ait sanatçı sayfasının çekimi
+	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int) # Sayaçın bulunması ve düzenlenmesi
 	print(artist_name, artistScrobbleCount)
 	return artistScrobbleCount # library_header_title, metadata_display
 
-def getLastLineContent(file_name):
-	with open(file_name, 'r') as f:
-		return f.readlines()[-1][:14]
+def getLastLineContent(file_name,start,end): # Belirtilen dosyanın en altındaki öğenin çekimi
+	with open(file_name, 'r') as f: # Dosyanın okunması
+		return f.readlines()[-1][start:end] # Satırın okunup döndürülmesi
 
 ## -- PRINT DEFS --
-def printRunningDef(def_info):
+
+def printRunningDef(def_info): # O an çalışan fonksiyonun ekrana yazdırılması
 	if True:
 		time.sleep(0.03)
 		currentLine = def_info.f_back.f_lineno
@@ -606,7 +606,7 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 		time.sleep(refresh_time) # 5 sec
 		doCheckChange(upi_dict, upi_un)
 
-def printTodayAllTime(artists_alltime, artists_today):
+def printTodayAllTime(artists_alltime, artists_today): # Kullanıcının bugün dinlediği sanatçıların tüm zamanda ne kadar dinlendiğinin ekrana yazdırılması
 	if len(artists_today) > 0:
 		print(f'\nYour total contribution to the artist today;')
 		for todayArtistName, todayArtistCount in artists_today.items():
@@ -618,7 +618,7 @@ def printTodayAllTime(artists_alltime, artists_today):
 			finally:
 				print(f'[{todayArtistNo}]: {todayArtistName} - {count_msg}')
 
-def printTodayListening(tracks_today):
+def printTodayListening(tracks_today): # Kullanıcının bugün dinlediği şarkıların ekrana yazdırılması
 	if bool(tracks_today): # Dict boş dönmezse
 		print('Today Listening Artists;')
 		for todayArtistName, todayArtistCount in tracks_today.items():
@@ -627,7 +627,7 @@ def printTodayListening(tracks_today):
 	else: # Dict boş ise false döndürür.
 		print('No songs were listened to today.')
 
-def printRecentTracks(last_tracks, scrobbled_count):
+def printRecentTracks(last_tracks, scrobbled_count): # Kullanıcının son dinlediği şarkıalrın ekrana yazdırılması
 	if last_tracks != None:
 		print(f'\nRecent Tracks;', end='')
 		recentTracks = last_tracks
@@ -640,16 +640,16 @@ def printRecentTracks(last_tracks, scrobbled_count):
 	elif scrobbled_count > 0:
 		print("\nRecent Tracks: realtime tracks is private.")
 
-def printDictValue(print_dict):
+def printDictValue(print_dict): # Bir sözlük içeriği yazdırma fonksiyonu
 	for key, value in print_dict.items():
 		print(f'{key} ({value})')
 
-def printus(dict_name, user_dict, count_dict):
+def printus(dict_name, user_dict, count_dict): # Farklı bir sözlük içeriği yazdırma fonksiyonu
 	print(f'{dict_name}: ({count_dict});')
 	for user, value in user_dict.items(): # user, bool
 		print(f'[{value}]: {user}')
 
-def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc):
+def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc): # KUllanıcının takip detaylarının ekrana yazdırılması
 	print(f'\nFollows;')
 	if False:
 		printus("Following", fg, fgc) # Following
