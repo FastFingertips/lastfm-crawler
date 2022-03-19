@@ -1,31 +1,31 @@
-import os
+import os 
 import sys
-import time
-import json
-import logging
+import time 
+import json 
+import logging # Logging
 from datetime import date, datetime
 import requests
-import urllib.parse
-from bs4 import BeautifulSoup
-from win10toast import ToastNotifier
+import urllib.parse as parse
+from bs4 import BeautifulSoup as bs 
+from win10toast import ToastNotifier # pip install win10toast
 from inspect import currentframe #: PMI
 
-terminalInfo = False
+terminalInfo = False #: True
 
 ## -- SPECIAL DEFS --
-def ping(host):
-	os.system("cls && ping -n 1 " + host)
+def ping(host): 
+	os.system("cls && ping -n 1 " + host) 
 
-def debugLog(def_return=False):
-	debugFile = 'debug.log'
-	logging.basicConfig(
+def debugLog(def_return=False): 
+	debugFile = 'debug.log' 
+	logging.basicConfig( 
 		filename = debugFile,
 		encoding = 'utf-8',
 		format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
 		datefmt = '%Y%m%d%H%M%S',
 		level = logging.DEBUG)
 
-	if def_return:
+	if def_return: #
 		return getLastLineContent(debugFile,0,14)
 
 ## -- DO DEFS --
@@ -65,7 +65,7 @@ def doRunLastNotifier(current_profile_data):
 		username = current_profile_data["username"]
 		song_name = current_profile_data["last_tracks"][0][0]
 		artist_name = current_profile_data["last_tracks"][0][1]
-		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/+noredirect/{urllib.parse.quote(artist_name)}?date_preset=ALL'
+		artistCountUrl = f'https://www.last.fm/user/{username}/library/music/+noredirect/{parse.quote(artist_name)}?date_preset=ALL'
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistCount = artistCountDom.find_all("p", {"class":"metadata-display"})[0].text
 		msgLastTrack = f'\nLast track: {song_name} | {artist_name} ({artistCount})'
@@ -133,7 +133,7 @@ def doDirCreate(dir_name):
 			pass # Directory already exists
 
 def doCalcAlltimeTodayCount(first_alltime, today_box): # total contribution to artists listened to today
-	print(first_alltime)
+	print(first_alltime) 
 	print(today_box)
 
 def doDictJsonSave(json_name, save_dict, json_dir='backups/json', open_mode='w'):
@@ -233,7 +233,7 @@ def getResponse(response_url):
 def getDom(response):
 	while True:
 		printRunningDef(currentframe())
-		pageContent = BeautifulSoup(response.content, 'html.parser')
+		pageContent = bs(response.content, 'html.parser')
 		return pageContent
 
 def getFaviconUrl(site_url): # Belirtilen sayfadaki iconu çeker.
@@ -479,7 +479,7 @@ def getTodayListening(user_name):
 def getArtistAllCount(user_name, artist_names):
 	artistScrobbs = {}
 	for artistName in artist_names:
-		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artistName)}' # Artist alltime details
+		artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{parse.quote(artistName)}' # Artist alltime details
 		artistCountDom = getDom(getResponse(artistCountUrl))
 		artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int)
 		artistScrobbs[artistName] = artistScrobbleCount # library_header_title, metadata_display
@@ -540,14 +540,14 @@ def getArtistScrobbleCount(user_name, artist_name, date_time, method):
 		return getArtistAllScrobbleCount(user_name, artist_name)
 
 def getArtistTodayScrobbleCount(user_name, artist_name, from_set):
-	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}?from={from_set}&rangetype=1day'
+	artistTodayScrobbleUrl =  f'https://www.last.fm/tr/user/{user_name}/library/music/+noredirect/{parse.quote(artist_name)}?from={from_set}&rangetype=1day'
 	artistTodayScrobbleDom = getDom(getResponse(artistTodayScrobbleUrl))
 	artistTodayScrobbleElement = artistTodayScrobbleDom.find_all("p", {"class":"metadata-display"})[0].text
 	artistTodayScrobbleCount = getRemoval(artistTodayScrobbleElement, ',', int)
 	return artistTodayScrobbleCount
 	
 def getArtistAllScrobbleCount(user_name, artist_name): # Belirtilen kullanıcının o sanatçıyı ne kadar dinlediği
-	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{urllib.parse.quote(artist_name)}' # Kullanıcıya ait sanatçı sayfası
+	artistCountUrl = f'https://www.last.fm/user/{user_name}/library/music/+noredirect/{parse.quote(artist_name)}' # Kullanıcıya ait sanatçı sayfası
 	artistCountDom = getDom(getResponse(artistCountUrl)) # Kullanıcıya ait sanatçı sayfasının çekimi
 	artistScrobbleCount = getRemoval(artistCountDom.find_all("p", {"class":"metadata-display"})[0].text, ',', int) # Sayaçın bulunması ve düzenlenmesi
 	print(artist_name, artistScrobbleCount)
@@ -608,8 +608,9 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 
 	if refresh_bool:
 		refresh_time = 0
+
 		if refresh_time == 0:
-			rint('\nChecking profile again..')
+			print('\nChecking profile again..')
 		else:
 			print(f'\nIt will be checked again in {refresh_time} seconds..')
 
@@ -678,10 +679,11 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc): # KUllanıcının takip d
 
 if __name__ == '__main__':
 	try:
-		username = sys.argv[1] # -1 
+		username = sys.argv[1] # Username input from command line
 	except:
-		username = input('Username: @')
-	appSession = debugLog(True)
-	# ping("www.last.fm")
-	getSearchUser(username)
+		username = input('Username: @') 
+
+	appSession = debugLog(True) 
+	# ping("www.last.fm") # Ping test
+	getSearchUser(username) 
 
