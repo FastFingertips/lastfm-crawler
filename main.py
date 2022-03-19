@@ -78,17 +78,18 @@ def doRunLastNotifier(current_profile_data):
 
 def doCheckChange(current_profile_data, user_name):
 	printRunningDef(currentframe())
+	processPrefix = 'Process: '
 	while True:	
-		print('Process: Syncing profile..')
+		print(f'{processPrefix}Syncing profile..')
 		newProfileData = getSearchUser(user_name, False) 	
 		if current_profile_data != newProfileData:
-			print('Process: New profile information has been obtained.')
+			print(f"{' '*len(processPrefix)}New profile information has been obtained.")
 			if newProfileData["scrobbled_count"] != current_profile_data["scrobbled_count"]:
 				doRunLastNotifier(newProfileData)
 			printStatus(newProfileData, True)
 			current_profile_data = newProfileData
 		else:
-			print('Process: No changes to profile information.')
+			print(f"{' '*len(processPrefix)}No changes to profile information.")
 
 def doRunNotifier(title_msg=' ', content_msg=' '):
 	printRunningDef(currentframe())
@@ -606,9 +607,13 @@ def printStatus(upi_dict, refresh_bool): # printStatus(userProfileInfos, react)
 	print(f'Loved Tracks: {upi_lc}'),
 
 	if refresh_bool:
-		refresh_time = 5
-		print(f'\nIt will be checked again in {refresh_time} seconds..')
-		time.sleep(refresh_time) # 5 sec
+		refresh_time = 0
+		if refresh_time == 0:
+			rint('\nChecking profile again..')
+		else:
+			print(f'\nIt will be checked again in {refresh_time} seconds..')
+
+		time.sleep(refresh_time)
 		doCheckChange(upi_dict, upi_un)
 
 def printTodayAllTime(artists_alltime, artists_today): # Kullanıcının bugün dinlediği sanatçıların tüm zamanda ne kadar dinlendiğinin ekrana yazdırılması
@@ -673,7 +678,7 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc): # KUllanıcının takip d
 
 if __name__ == '__main__':
 	try:
-		username = sys.argv[-1]
+		username = sys.argv[1] # -1 
 	except:
 		username = input('Username: @')
 	appSession = debugLog(True)
