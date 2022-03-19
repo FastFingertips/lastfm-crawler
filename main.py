@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import logging
@@ -8,6 +9,8 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from win10toast import ToastNotifier
 from inspect import currentframe #: PMI
+
+terminalInfo = False
 
 ## -- SPECIAL DEFS --
 def ping(host):
@@ -210,13 +213,15 @@ def getResponse(response_url):
 		# response_url = f'{urlPart1}{urlPart2}{urlPart3}'	
 		response = requests.get(response_url)
 		responseCode = response.status_code
-		print(f'Request: {response_url[:]} : {responseCode}')
+		if terminalInfo:
+			print(f'Request: {response_url[:]} : {responseCode}')
 
 		if responseCode in range(200,299):
 			if "https://www.last.fm/" in response_url:
 				pageContent = getDom(response)
 				ogUrl = pageContent.find("meta", property="og:url")['content']
-				print(f'responseUrl = ogUrl {response_url == ogUrl}')
+				if terminalInfo:
+					print(f'responseUrl = ogUrl {response_url == ogUrl}')
 				if response_url != ogUrl:
 					print('Url değişimi algılangı istek düzeltiliyor..')
 					response_url = ogUrl
@@ -554,7 +559,7 @@ def getLastLineContent(file_name,start,end): # Belirtilen dosyanın en altındak
 ## -- PRINT DEFS --
 
 def printRunningDef(def_info): # O an çalışan fonksiyonun ekrana yazdırılması
-	if True:
+	if terminalInfo:
 		time.sleep(0.03)
 		currentLine = def_info.f_back.f_lineno
 		defName = def_info.f_code.co_name
@@ -667,7 +672,11 @@ def printFollowStat(fg, fs, fb, fgc, fsc, fbc, nofbc): # KUllanıcının takip d
 		print(f'{fbc} users you follow are following you.')
 
 if __name__ == '__main__':
+	try:
+		username = sys.argv[-1]
+	except:
+		username = input('Username: @')
 	appSession = debugLog(True)
 	# ping("www.last.fm")
-	getSearchUser(input('Username: @'))
+	getSearchUser(username)
 
